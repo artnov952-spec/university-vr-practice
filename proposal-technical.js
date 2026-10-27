@@ -42,4 +42,3 @@ export function renderTechnicalDetails(language) {
       <div class="architecture-map">${Object.entries(data.architecture).map(([id,item])=>`<button data-arch="${id}" aria-pressed="${id==='teacher'}">${icon(item[4])}<strong>${item[0]}</strong><small>${item[1]}</small></button>`).join('')}</div><article id="architecture-detail"></article>
 </div></div>`;
 }
-
