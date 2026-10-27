@@ -1,0 +1,13 @@
+{
+  "name": "university-vr-practice",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Interactive university VR proposal and browser-local demonstration",
+  "scripts": {
+    "test": "node scripts/check-site.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
