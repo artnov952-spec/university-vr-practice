@@ -4,6 +4,7 @@ import { SCENARIO_FRAMES } from './scenario-visuals.js?v=sales20261027-r1';
 import { scenarioLibrary } from './scenario-library.js?v=sales20261027-r1';
 import { renderClassroomPlan } from './classroom-plan.js?v=sales20261027-r1';
 import { renderTechnicalDetails } from './proposal-technical.js?v=sales20261027-r1';
+import { renderInternationalEvidence } from './international-evidence.js?v=sales20261027-r3public';
 export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const icon = name => `<svg class="i" aria-hidden="true"><use href="./assets/ui-icons/sprite.svg#i-${name}"></use></svg>`;
 export const SALES_SECTIONS = ['purpose','experience','environments','benefits','workflow','classroom','next-step'];
@@ -36,7 +37,7 @@ export function renderProposal(language) {
       <div class="sales-hero-scene" id="hero-scene">
         <div class="hero-film-images"><img data-hero-layer="0" class="hero-film-frame is-active" src="${heroFrame.src}" width="1774" height="887" alt="${t('Учебная сцена: жительница у электрощита в подъезде','O‘quv sahnasi: kirish yo‘lagida elektr shkafi yonidagi ayol')}" fetchpriority="high"><img data-hero-layer="1" class="hero-film-frame" src="${heroFrame.src}" width="1774" height="887" alt="" aria-hidden="true"></div>
         <div class="hero-viewfinder" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-        <div class="hero-scene-tag">${icon('eye')}<span>${t('Взгляд курсанта','Kursant nigohi')}</span><span>VR / ${t('Подъезд','Kirish yo‘lagi')}</span></div>
+        <div class="hero-scene-tag">${icon('eye')}<span>${t('Учебная сцена','O‘quv sahnasi')}</span><span>${t('Подъезд','Kirish yo‘lagi')}</span></div>
         <div class="hero-decision">
           <div class="hero-decision-heading"><span id="hero-film-phase">${t('Учебная ситуация','O‘quv vaziyati')}</span><span id="hero-film-count">0 / 5</span></div>
           <strong id="hero-film-caption">${local(heroCase)}</strong>
@@ -70,7 +71,6 @@ export function renderProposal(language) {
     <section class="sales-section sales-benefits" id="benefits"><div class="wrap">
       ${heading('03',t('ДЛЯ УНИВЕРСИТЕТА','UNIVERSITET UCHUN'),t('Больше практики.<br><span>Понятнее результат.</span>','Ko‘proq amaliyot.<br><span>Aniqroq natija.</span>'))}
       <div class="sales-benefit-grid">${benefits.map(([ico,title,text],index)=>`<article><span class="benefit-number">0${index+1}</span>${icon(ico)}<h3>${title}</h3><p>${text}</p></article>`).join('')}</div>
-      <div class="sales-evidence"><div><p class="eyebrow">${t('ПОДХОД УЖЕ ПРИМЕНЯЮТ','USUL AMALDA QO‘LLANMOQDA')}</p><h3>${t('VR используют в подготовке полиции.','VR politsiya tayyorgarligida ishlatiladi.')}</h3></div><a href="https://www.dyfed-powys.police.uk/foi-ai/dyfed-powys-police/disclosure-2025/november/virtual-realitymixed-reality-10512025/" target="_blank" rel="noopener"><b>20 ${t('шлемов','shlem')}</b><span>Dyfed-Powys Police / UK<small>${t('VR и 360° в начальной подготовке. Официальный ответ от 27.10.2025.','Boshlang‘ich tayyorgarlikda VR va 360°. 27.10.2025 kungi rasmiy javob.')}</small></span>${icon('arrow-up-right')}</a><a href="https://fpi.omb.gov/program/16.054.html" target="_blank" rel="noopener"><b>USA / DOJ</b><span>${t('Сценарное VR-обучение деэскалации','Vaziyatli VR deeskalatsiya ta’limi')}<small>${t('Программа 16.054 в федеральном реестре.','Federal reyestrdagi 16.054 dasturi.')}</small></span>${icon('arrow-up-right')}</a></div>
     </div></section>
     <section class="sales-section wrap" id="workflow">
       ${heading('04',t('КАК ПРОХОДИТ ЗАНЯТИЕ','MASHG‘ULOT QANDAY O‘TADI'),t('Назначить. Пройти.<br><span>Сохранить результат.</span>','Tayinlash. Bajarish.<br><span>Natijani saqlash.</span>'))}
@@ -88,5 +88,5 @@ export function renderProposal(language) {
     </section>
     <section class="sales-section sales-next" id="next-step"><div class="wrap sales-next-layout"><div><p class="eyebrow">${t('СЛЕДУЮЩИЙ ШАГ','KEYINGI QADAM')}</p><h2>${t('Начнем с одной группы.<br><span>И одной реальной задачи.</span>','Bitta guruhdan boshlaymiz.<br><span>Va bitta haqiqiy vazifadan.</span>')}</h2><p>${t('Выберем ситуацию, покажем путь курсанта и разберем результат вместе с преподавателем.','Vaziyatni tanlaymiz, kursant yo‘lini ko‘rsatamiz va natijani o‘qituvchi bilan tahlil qilamiz.')}</p></div><div class="sales-next-action"><button type="button" id="open-pilot" class="btn btn--lg" aria-haspopup="dialog">${t('Выбрать пробное занятие','Sinov mashg‘ulotini tanlash')}${icon('arrow-right')}</button><span>${t('Сценарий, группа и план показа. Без лишних шагов.','Ssenariy, guruh va namoyish rejasi. Ortiqcha qadamlarsiz.')}</span></div></div></section>
   </main>
-  <footer class="sales-footer wrap"><div><b>CLOUDPLUS</b><button class="text-button" id="open-about">${t('О демонстрации и источниках','Namoyish va manbalar haqida')}</button></div><p>${t('Интерактивная концепция на учебных данных. CG-сцены и баллы показаны на примере. Класс рассчитан в проекте на 10 мест; реальная одновременная работа и обмен с E-reyting требуют разработки, подключения и проверки на оборудовании.','O‘quv ma’lumotlaridagi interaktiv konsepsiya. CG-sahnalar va ballar namuna sifatida ko‘rsatilgan. Xona loyihasi 10 joyli; haqiqiy bir vaqtda ishlash va E-reyting almashuvi ishlab chiqish, ulash va jihozda tekshirishni talab qiladi.')}</p></footer>`;
+  <footer class="sales-footer wrap"><div><b>CLOUDPLUS</b><button class="text-button" id="open-about">${t('О демонстрации и источниках','Namoyish va manbalar haqida')}</button></div>${renderInternationalEvidence(language)}<p>${t('Интерактивная концепция на учебных данных. CG-сцены и баллы показаны на примере. Класс рассчитан в проекте на 10 мест; реальная одновременная работа и обмен с E-reyting требуют разработки, подключения и проверки на оборудовании.','O‘quv ma’lumotlaridagi interaktiv konsepsiya. CG-sahnalar va ballar namuna sifatida ko‘rsatilgan. Xona loyihasi 10 joyli; haqiqiy bir vaqtda ishlash va E-reyting almashuvi ishlab chiqish, ulash va jihozda tekshirishni talab qiladi.')}</p></footer>`;
 }

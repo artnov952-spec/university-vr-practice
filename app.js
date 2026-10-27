@@ -2,7 +2,7 @@ import { mountWorkspace, calculateResult } from './workspace.js?v=sales20261027-
 import { modules, scenarios } from './content.js?v=sales20261027-r1';
 import { getLanguage, setLanguage, subscribeLanguage } from './locale.js?v=sales20261027-r1';
 import { proposalContent } from './proposal-content.js?v=sales20261027-r1';
-import { renderProposal, escapeHtml as escape, icon } from './proposal-template.js?v=sales20261027-r1';
+import { renderProposal, escapeHtml as escape, icon } from './proposal-template.js?v=sales20261027-r3public';
 import { createPresentationDemo, reducePresentationDemo, renderPresentationDemo } from './presentation-demo.js?v=sales20261027-r1';
 import { scenarioLibrary } from './scenario-library.js?v=sales20261027-r1';
 import { prefetchScenarioFrame } from './scenario-visuals.js?v=sales20261027-r1';
@@ -10,7 +10,7 @@ import { environmentIds, createEnvironmentExamples, reduceEnvironmentExample, re
 import { PANORAMA_MEDIA } from './panorama/media.js?v=sales20261027-r1';
 import { renderClassroomPlan } from './classroom-plan.js?v=sales20261027-r1';
 import { mountSalesHero } from './sales-hero.js?v=sales20261027-r1';
-import { PILOT_CASES, pilotPlan, renderPilotPlan } from './pilot-plan.js?v=sales20261027-r1';
+import { PILOT_CASES, DEFAULT_PILOT_CASE, pilotPlan, renderPilotPlan } from './pilot-plan.js?v=sales20261027-r3public';
 
 const $ = id => document.getElementById(id);
 const t = (ru, uz) => getLanguage() === 'uz' ? uz : ru;
@@ -20,7 +20,7 @@ let presentationDemo = createPresentationDemo();
 const environmentExamples = createEnvironmentExamples();
 const roomChecks = new Set();
 let deliveryStep=0;
-let heroController, expandedEnvironment=null, pilotCase=PILOT_CASES[0];
+let heroController, expandedEnvironment=null, pilotCase=DEFAULT_PILOT_CASE;
 function selectDelivery(index) {
   const copy=[
     [t('Результат: согласован план занятий','Natija: mashg‘ulot rejasi kelishildi'),t('Университет и разработчик согласуют 20 ситуаций, действия курсанта и критерии проверки.','Universitet va ishlab chiquvchi 20 vaziyat, kursant amallari va tekshirish mezonlarini kelishadi.')],
@@ -352,7 +352,7 @@ document.addEventListener('click', event=>{
   else if (target.dataset.openEnvironment) openEnvironment(target.dataset.openEnvironment);
   else if (target.hasAttribute('data-open-room')) {renderRoomDialog();showDialog('room-dialog');}
   else if (target.id==='open-pilot') {renderPilot();showDialog('pilot-dialog');}
-  else if (target.dataset.pilotCase && PILOT_CASES.includes(target.dataset.pilotCase)) {pilotCase=target.dataset.pilotCase;renderPilot();$('pilot-dialog-slot').querySelector(`[data-pilot-case="${pilotCase}"]`).focus({preventScroll:true});}
+  else if (target.dataset.pilotCase && PILOT_CASES.includes(target.dataset.pilotCase)) {pilotCase=target.dataset.pilotCase;renderPilot();$('pilot-picker-toggle').focus({preventScroll:true});}
   else if (target.id==='download-pilot') {
     const plan=pilotPlan(pilotCase,getLanguage());
     const url=URL.createObjectURL(new Blob(['\uFEFF'+plan.text],{type:'text/plain;charset=utf-8'}));
@@ -421,6 +421,7 @@ document.querySelectorAll('dialog').forEach(dialog=>{
   dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}});
 });
 document.addEventListener('keydown',event=>{
+  if (event.key==='Escape' && $('pilot-dialog').open && $('pilot-picker')?.open) {event.preventDefault();event.stopPropagation();$('pilot-picker').open=false;$('pilot-picker-toggle').focus({preventScroll:true});return;}
   if (event.composedPath().some(node=>node.hasAttribute?.('data-vr-workspace'))) return;
   const zone=event.target.closest('[data-zone]');
   if (zone && ['Enter',' '].includes(event.key)) {event.preventDefault();selectZone(zone.dataset.zone,zone.dataset.seat,true);return;}
