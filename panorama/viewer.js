@@ -1,6 +1,6 @@
-import { SCENES, SCENE_ORDER, getScene, constrainView, directionAt, projectHotspot, inspectDimensions, clamp, resolveViewMode, fullscreenViewMode, fitOriginalImage, projectOriginalHotspot } from './scene-data.js?v=proposal20261027-r8final';
-import { LANGUAGES, normalizeLanguage, translate, localizeScene, applyViewerLanguage } from './locale.js?v=proposal20261027-r8final';
-import { normalizeVisualContext, scenarioVisualState, compositeScenario } from '../scenario-visuals.js?v=proposal20261027-r8final';
+import { SCENES, SCENE_ORDER, getScene, constrainView, directionAt, projectHotspot, inspectDimensions, clamp, resolveViewMode, fullscreenViewMode, fitOriginalImage, projectOriginalHotspot } from './scene-data.js?v=proposal20261027-r10final';
+import { LANGUAGES, normalizeLanguage, translate, localizeScene, applyViewerLanguage } from './locale.js?v=proposal20261027-r10final';
+import { normalizeVisualContext, scenarioVisualState, loadScenarioFrame } from '../scenario-visuals.js?v=proposal20261027-r10final';
 
 export const normalizeTheme = () => 'light';
 
@@ -218,13 +218,13 @@ export async function mountPanorama(canvas, options = {}) {
       const loaded = await loadImage(url.href, imageRequest.signal);
       const dimensions = inspectDimensions(loaded.naturalWidth, loaded.naturalHeight);
       const visual = scenarioVisualState(scenarioContext);
-      const rendered = visual?.sceneId === id ? await compositeScenario(loaded, scenarioContext) : loaded;
+      const rendered = visual?.sceneId === id ? await loadScenarioFrame(loaded, scenarioContext) : loaded;
       if (disposed || token !== requestId) return false;
       const surface = state.mode === 'original' ? flat : canvas;
       if (image) await fade(surface, 1, 0, 100, token);
       if (disposed || token !== requestId) return false;
       config = next; image = loaded;
-      renderedSource = rendered === loaded ? loaded.src : rendered.toDataURL('image/png');
+      renderedSource = rendered.src;
       flat.src = renderedSource; flat.alt = text('flatAlt', { label: localizeScene(next, language).label });
       if (state.engine === 'panorama') {
         const nextGeometry = new THREE.SphereGeometry(50, 128, 64, 0, next.angle * Math.PI / 180,

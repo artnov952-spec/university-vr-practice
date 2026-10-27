@@ -1,39 +1,40 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { runInNewContext } from 'node:vm';
+import { createHash } from 'node:crypto';
 import { scenarioLibrary } from '../scenario-library.js';
-import { VISUAL_ATLASES, VISUAL_SPRITES, VISUAL_SCRIPTS, scenarioVisualState, normalizeVisualContext, propBounds, renderScenarioVisual, visualForAttempt } from '../scenario-visuals.js';
+import { SCENARIO_FRAMES, scenarioVisualState, normalizeVisualContext, renderScenarioVisual, visualForAttempt, loadScenarioFrame } from '../scenario-visuals.js';
 import { createPresentationDemo, reducePresentationDemo, presentationScore } from '../presentation-demo.js';
 import { readParentCommand, normalizeTheme } from '../panorama/viewer.js';
 
-assert.deepEqual(Object.keys(VISUAL_SCRIPTS).sort(), scenarioLibrary.map(item=>item.id).sort());
+assert.deepEqual(Object.keys(SCENARIO_FRAMES).sort(), scenarioLibrary.map(item=>item.id).sort());
 let transitions=0;
 for(const item of scenarioLibrary) {
   let state=reducePresentationDemo(createPresentationDemo(),{type:'case',value:item.id});
   state={...state,caseId:item.id,scenario:item.sceneId,checks:[true,true,true],phase:'ready'};
   state=reducePresentationDemo(state,{type:'start'});
-  let previous=JSON.stringify(scenarioVisualState(state).props);
+  let previous=scenarioVisualState(state).frame.src;
   for(let index=0;index<5;index++) {
     const before=state;
     state=reducePresentationDemo(state,{type:'point',index});
     const visual=scenarioVisualState(state);
     assert.equal(visual.step,index+1);
-    assert.notEqual(JSON.stringify(visual.props),previous,`${item.id} action ${index+1} must visibly change objects`);
-    previous=JSON.stringify(visual.props); transitions++;
+    assert.notEqual(visual.frame.src,previous,`${item.id} action ${index+1} must select its own whole-frame render`);
+    previous=visual.frame.src; transitions++;
     assert.equal(reducePresentationDemo(state,{type:'point',index}),state,'Duplicate cannot change state');
     assert.equal(reducePresentationDemo({...before,paused:true},{type:'point',index}).points.length,before.points.length,'Pause blocks effects');
-    for(const prop of visual.props) {
-      const bounds=propBounds(prop);
-      assert.ok(Object.values(bounds).every(Number.isFinite));
-      assert.ok(bounds.left>=0 && bounds.top>=0 && bounds.left+bounds.width<=100 && bounds.top+bounds.height<=115,`${item.id}/${index}/${prop.id} source bounds`);
-      assert.ok(VISUAL_SPRITES[prop.sprite] || ['smoke','wet','rain','dusk'].includes(prop.sprite));
+    assert.equal(visual.frame.width/visual.frame.height,2);
+    for(const language of ['ru','uz']) {
+      const html=renderScenarioVisual(state,language);
+      assert.ok(html.includes(`data-visual-step="${index+1}"`));
+      assert.ok(html.includes(visual.frame.src));
+      assert.ok(!/scenario-prop|scenario-layers|background-image/.test(html));
     }
-    for(const language of ['ru','uz']) assert.ok(renderScenarioVisual(state,language).includes(`data-visual-step="${index+1}"`));
   }
   assert.equal(presentationScore(state),100,'Assessment still uses original reducer and formula');
   const missing=scenarioVisualState({caseId:item.id,points:[0,1,3,4]});
   assert.equal(missing.step,2); assert.equal(missing.pending,true);
-  assert.deepEqual(missing.props,scenarioVisualState({caseId:item.id,points:[0,1]}).props);
+  assert.deepEqual(missing.frame,scenarioVisualState({caseId:item.id,points:[0,1]}).frame);
   assert.equal(scenarioVisualState({caseId:item.id,points:[4]}).step,0,'Final action alone cannot resolve a hazard');
   const attempt={scenario:{...item,conceptId:item.id},events:item.points.map(point=>({kind:'record',pointId:point.id}))};
   assert.equal(scenarioVisualState(visualForAttempt(attempt)).step,5);
@@ -58,11 +59,36 @@ for(const throwStorage of [false,true]) {
   assert.equal(root.dataset.theme,'light');assert.equal(root.style.colorScheme,'light');
   assert.ok(writes.every(([key,value])=>key==='university-vr.theme'&&value==='light'),'No workspace data writes');
 }
-for(const sheet of Object.values(VISUAL_ATLASES)) {
-  const png=await readFile(new URL('../'+sheet.src,import.meta.url));
-  assert.equal(png.readUInt32BE(16),sheet.width);assert.equal(png.readUInt32BE(20),sheet.height);
-  assert.equal(png[25],6,'RGBA atlas required');
+function jpegSize(bytes) {
+  assert.equal(bytes.readUInt16BE(0),0xffd8);
+  for(let offset=2;offset+8<bytes.length;) {
+    assert.equal(bytes[offset++],0xff);
+    while(bytes[offset]===0xff)offset++;
+    const marker=bytes[offset++],length=bytes.readUInt16BE(offset);
+    if([0xc0,0xc1,0xc2].includes(marker))return {width:bytes.readUInt16BE(offset+5),height:bytes.readUInt16BE(offset+3)};
+    if(marker===0xda || length<2)break;
+    offset+=length;
+  }
+  throw new Error('JPEG dimensions unavailable');
 }
+const hashes=new Set();let frameBytes=0;
+for(const frame of Object.values(SCENARIO_FRAMES).flat()) {
+  const image=await readFile(new URL('../'+frame.src,import.meta.url));
+  assert.deepEqual(jpegSize(image),{width:frame.width,height:frame.height},frame.src);
+  assert.ok(image.length<2_500_000,'Web frame byte budget');frameBytes+=image.length;
+  const hash=createHash('sha256').update(image).digest('hex');assert.ok(!hashes.has(hash),'Every checkpoint has its own render, not repeated placeholders');hashes.add(hash);
+}
+const nativeImage=globalThis.Image;
+try {
+  globalThis.Image=class{set src(value){this.value=value;queueMicrotask(()=>this.onload?.());}get src(){return this.value;}};
+  const base={src:'base'};
+  assert.equal(await loadScenarioFrame(base,{caseId:'courtyard-01',points:[]}),base);
+  const selected=await loadScenarioFrame(base,{caseId:'courtyard-01',points:[0,1]});
+  assert.ok(new URL(selected.src).pathname.endsWith('/assets/scenario-frames/courtyard-01/step-2.jpg'));
+  assert.equal(await loadScenarioFrame(base,{caseId:'courtyard-01',points:[0,1]}),selected);
+} finally {if(nativeImage===undefined)delete globalThis.Image;else globalThis.Image=nativeImage;}
+const rendererSource=await readFile(new URL('../scenario-visuals.js',import.meta.url),'utf8');
+assert.ok(!/drawImage|createElement\('canvas'\)|VISUAL_SPRITES|renderVisualLayers/.test(rendererSource),'No sprite compositing path remains');
 const proposal=await readFile(new URL('../proposal-template.js',import.meta.url),'utf8');
 assert.ok(!proposal.includes('data-theme-toggle'));
-console.log(JSON.stringify({result:'passed',scenarios:20,visualTransitions:transitions,languages:2,alphaAtlases:4,guards:['duplicate','pause','missing prerequisite','legacy snapshot','same-origin parent','light-only storage migration']},null,2));
+console.log(JSON.stringify({result:'passed',scenarios:20,wholeFrameRenders:hashes.size,frameBytes,visualTransitions:transitions,languages:2,spriteLayers:0,guards:['duplicate','pause','missing prerequisite','legacy snapshot','same-origin parent','light-only storage migration']},null,2));

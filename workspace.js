@@ -1,11 +1,11 @@
-import { scenarios as sourceScenarios, modules as sourceModules } from './content.js?v=proposal20261027-r8final';
-import { getLanguage, setLanguage, subscribeLanguage } from './locale.js?v=proposal20261027-r8final';
-import { translate, localizedField, seedTranslations } from './workspace-i18n.js?v=proposal20261027-r8final';
-import { createExchange, exchangeRows, validateExchange, exchangeCSV, EXCHANGE_FIELDS, EXCHANGE_TABS } from './workspace-exchange.js?v=proposal20261027-r8final';
-import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r8final';
-import { renderScenarioVisual, visualForAttempt } from './scenario-visuals.js?v=proposal20261027-r8final';
-export { translate, localizedField } from './workspace-i18n.js?v=proposal20261027-r8final';
-export { exchangeRows, validateExchange, exchangeCSV } from './workspace-exchange.js?v=proposal20261027-r8final';
+import { scenarios as sourceScenarios, modules as sourceModules } from './content.js?v=proposal20261027-r10final';
+import { getLanguage, setLanguage, subscribeLanguage } from './locale.js?v=proposal20261027-r10final';
+import { translate, localizedField, seedTranslations } from './workspace-i18n.js?v=proposal20261027-r10final';
+import { createExchange, exchangeRows, validateExchange, exchangeCSV, EXCHANGE_FIELDS, EXCHANGE_TABS } from './workspace-exchange.js?v=proposal20261027-r10final';
+import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r10final';
+import { renderScenarioVisual, visualForAttempt, prefetchScenarioFrame } from './scenario-visuals.js?v=proposal20261027-r10final';
+export { translate, localizedField } from './workspace-i18n.js?v=proposal20261027-r10final';
+export { exchangeRows, validateExchange, exchangeCSV } from './workspace-exchange.js?v=proposal20261027-r10final';
 
 // Local demo only. PDF pages 7-23 define the scope, not an approved scoring method.
 // Integration: mountWorkspace(root, { onOpenScene, onStateChange }); no parent changes.
@@ -673,7 +673,7 @@ export function mountWorkspace(root, options = {}) {
   frame.setAttribute('data-vr-workspace', '');
   const stylesheet = doc.createElement('link');
   stylesheet.rel = 'stylesheet';
-  stylesheet.href = new URL('./workspace.css?v=proposal20261027-r8final', import.meta.url).href;
+  stylesheet.href = new URL('./workspace.css?v=proposal20261027-r10final', import.meta.url).href;
   if (!doc.head?.querySelector?.('link[href*="workspace.css"]')) root.append(stylesheet);
   root.append(frame);
 
@@ -862,7 +862,8 @@ export function mountWorkspace(root, options = {}) {
 
   function attemptVisual(attempt) {
     const node = element('div', {class:'ws-scenario-visual'});
-    node.innerHTML = renderScenarioVisual(visualForAttempt(attempt), state.language);
+    const visual=visualForAttempt(attempt);prefetchScenarioFrame(visual);
+    node.innerHTML = renderScenarioVisual(visual, state.language);
     return node;
   }
   function modulePractice() {

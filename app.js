@@ -1,16 +1,39 @@
-import { mountWorkspace, calculateResult } from './workspace.js?v=proposal20261027-r8final';
-import { modules, scenarios } from './content.js?v=proposal20261027-r8final';
-import { getLanguage, setLanguage, subscribeLanguage } from './locale.js?v=proposal20261027-r8final';
-import { proposalContent } from './proposal-content.js?v=proposal20261027-r8final';
-import { renderProposal, escapeHtml as escape, icon } from './proposal-template.js?v=proposal20261027-r8final';
-import { createPresentationDemo, reducePresentationDemo, renderPresentationDemo } from './presentation-demo.js?v=proposal20261027-r8final';
-import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r8final';
+import { mountWorkspace, calculateResult } from './workspace.js?v=proposal20261027-r10final';
+import { modules, scenarios } from './content.js?v=proposal20261027-r10final';
+import { getLanguage, setLanguage, subscribeLanguage } from './locale.js?v=proposal20261027-r10final';
+import { proposalContent } from './proposal-content.js?v=proposal20261027-r10final';
+import { renderProposal, escapeHtml as escape, icon } from './proposal-template.js?v=proposal20261027-r10final';
+import { createPresentationDemo, reducePresentationDemo, renderPresentationDemo } from './presentation-demo.js?v=proposal20261027-r10final';
+import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r10final';
+import { prefetchScenarioFrame } from './scenario-visuals.js?v=proposal20261027-r10final';
+import { environmentIds, createEnvironmentExamples, reduceEnvironmentExample, renderEnvironmentExample } from './proposal-environments.js?v=proposal20261027-r10final';
 
 const $ = id => document.getElementById(id);
 const t = (ru, uz) => getLanguage() === 'uz' ? uz : ru;
 const content = () => proposalContent(getLanguage());
 const view = {scene:'courtyard',stage:0,role:'teacher',zone:'intro',seat:null,architecture:'teacher',preview:'prepare',exchange:'api'};
 let presentationDemo = createPresentationDemo();
+const environmentExamples = createEnvironmentExamples();
+const roomChecks = new Set();
+let deliveryStep=0;
+function selectDelivery(index) {
+  const copy=[
+    [t('Результат: согласован план занятий','Natija: mashg‘ulot rejasi kelishildi'),t('Университет и разработчик согласуют 20 ситуаций, действия курсанта и критерии проверки.','Universitet va ishlab chiquvchi 20 vaziyat, kursant amallari va tekshirish mezonlarini kelishadi.')],
+    [t('Результат: проверен один полный пример','Natija: bitta to‘liq namuna tekshirildi'),t('На выбранном оборудовании проходят путь от запуска упражнения до разбора. Проверяют графику, управление и удобство.','Tanlangan jihozda mashqni boshlashdan tahlilgacha sinab ko‘riladi. Grafika, boshqaruv va qulaylik tekshiriladi.')],
+    [t('Результат: связан весь комплекс','Natija: butun kompleks bog‘landi'),t('Программа преподавателя, VR-среды, журнал и результаты работают вместе. Обмен с E-reyting проверяют на согласованном формате.','O‘qituvchi dasturi, VR-muhit, jurnal va natijalar birga ishlaydi. E-reyting almashuvi kelishilgan formatda tekshiriladi.')],
+    [t('Результат: аудитория готова к занятиям','Natija: auditoriya mashg‘ulotga tayyor'),t('Проверяют оборудование и сценарии, обучают преподавателей, передают инструкции и порядок поддержки.','Jihoz va ssenariylar tekshiriladi, o‘qituvchilar o‘qitiladi, yo‘riqnoma va yordam tartibi beriladi.')]
+  ];
+  if(!copy[index]||!$('delivery-output'))return;
+  deliveryStep=index;document.querySelectorAll('[data-delivery]').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.delivery)===index)));
+  $('delivery-output').innerHTML=`<strong>${copy[index][0]}</strong><p>${copy[index][1]}</p>`;
+}
+function renderEnvironment(id) {
+  const target = $('environment-content-'+id);
+  if (target) target.innerHTML = renderEnvironmentExample(id,environmentExamples[id],getLanguage());
+}
+function renderExchangeExample() {
+  if ($('integration-example')) $('integration-example').innerHTML = renderPresentationDemo({component:'exchange',state:presentationDemo,language:getLanguage(),scope:'integration'});
+}
 const systemRoot = document.createElement('div');
 systemRoot.id = 'workspace-root';
 const returnFocus = new WeakMap();
@@ -56,7 +79,7 @@ function openModule(id) {
 }
 function panoramaURL(id, embed = false, context = presentationDemo) {
   const visual = context?.caseId?.startsWith(id+'-') ? '&case='+encodeURIComponent(context.caseId)+'&points='+encodeURIComponent(context.points.join(',')) : '';
-  return './panorama/viewer.html?v=proposal20261027-r8final&scene='+encodeURIComponent(id)+'&theme=light&lang='+getLanguage()+(embed?'&embed=1':'')+visual;
+  return './panorama/viewer.html?v=proposal20261027-r10final&scene='+encodeURIComponent(id)+'&theme=light&lang='+getLanguage()+(embed?'&embed=1':'')+visual;
 }
 function sceneTitle(id) { return id === 'classroom' ? t('Учебная аудитория','O‘quv auditoriyasi') : content().scenes[id]?.title; }
 function openScene(id, context = presentationDemo) {
@@ -105,6 +128,7 @@ function markTabs(selector, attr, selected) {
   });
 }
 function selectScene(id, load = true) {
+  if (!$('scene-preview')) { if (Object.hasOwn(content().scenes,id)) view.scene=id; return; }
   const data = content().scenes[id];
   if (!data) return;
   view.scene = id;
@@ -118,6 +142,7 @@ function selectScene(id, load = true) {
   if (workspace) {selectStage(view.stage);selectArchitecture(view.architecture);selectPreview(view.preview);}
 }
 function renderSceneCases() {
+  if (!$('scenario-case-browser')) return;
   const cases=scenarioLibrary.filter(item=>item.sceneId===view.scene);
   const selected=cases.find(item=>item.id===presentationDemo.caseId) || cases[0];
   const local=(item,key='title')=>escape(getLanguage()==='uz'?item['uz'+key[0].toUpperCase()+key.slice(1)]:item[key]);
@@ -131,6 +156,8 @@ function selectStage(index) {
   const stage = stages[index];
   $('process-content').setAttribute('aria-labelledby','stage-'+index);
   $('process-content').innerHTML = `<div class="stage-heading"><span class="stage-number">${t('Этап','Bosqich')} ${index+1} / ${stages.length}</span><span class="badge badge--soft">${t('Экран и действия','Ekran va amallar')}</span></div><h3>${stage[0]}</h3><p>${stage[1]}</p>${renderPresentationDemo({stage:index,state:presentationDemo,language:getLanguage()})}<div class="stage-outcome"><b>${t('Результат этапа','Bosqich natijasi')}</b>${stage[2]}</div><div class="stage-navigation"><button class="btn btn--soft" data-process-stage="${index-1}" ${index===0?'disabled':''}>${icon('chevrons-left')}${t('Назад','Orqaga')}</button><button class="btn btn--soft" data-process-stage="${index===stages.length-1?0:index+1}">${index===stages.length-1?t('К первому этапу','Birinchi bosqichga'):t('Следующий этап','Keyingi bosqich')}${icon('arrow-right')}</button></div>`;
+  const selectedCase=scenarioLibrary.find(item=>item.id===presentationDemo.caseId);
+  if(selectedCase) $('process-content').querySelector('.stage-heading').insertAdjacentHTML('afterend',`<p class="selected-exercise">${icon('book-open')}${escape(getLanguage()==='uz'?selectedCase.uzTitle:selectedCase.title)}</p>`);
 }
 function selectRole(id) {
   const role = content().roles[id];
@@ -149,6 +176,10 @@ function selectZone(id, seat, interactive = false) {
     element.classList.toggle('active', selected); element.setAttribute('aria-pressed',String(selected));
   });
   $('classroom-detail').innerHTML = `<p class="eyebrow">${t('Назначение зоны','Hudud vazifasi')}${seat?' / '+t('место','joy')+' '+escape(seat):''}</p><h3>${zone[0]}</h3><p>${zone[1]}</p><ul>${zone[2].map(item=>`<li>${item}</li>`).join('')}</ul><div class="action-row">${id==='screen'?`<button class="btn btn--primary" data-inline-component="teacher">${t('Показать пульт преподавателя','O‘qituvchi panelini ko‘rsatish')} ${icon('arrow-right')}</button>`:''}<button class="btn btn--soft" data-open-scene="classroom">${t('Панорама аудитории','Auditoriya panoramasi')} ${icon('eye')}</button></div>`;
+  if (id!=='intro') {
+    const checks={screen:[t('Экран виден группе','Ekran guruhga ko‘rinadi'),t('Пульт преподавателя готов','O‘qituvchi paneli tayyor')],desks:[t('Проход между столами свободен','Stollar oralig‘i ochiq'),t('Материалы занятия открыты','Mashg‘ulot materiallari ochiq')],practice:[t('В зоне нет мебели и людей','Hududda mebel va odamlar yo‘q'),t('Границы практики проверены','Amaliyot chegaralari tekshirilgan')],storage:[t('Комплекты пронумерованы','To‘plamlar raqamlangan'),t('Кабели не мешают проходу','Simlar yo‘lni to‘smaydi')]};
+    $('classroom-detail').insertAdjacentHTML('beforeend',`<div class="room-checks"><h4>${t('Проверка перед занятием / пример','Mashg‘ulotdan oldingi tekshiruv / namuna')}</h4>${checks[id].map((text,index)=>`<button type="button" data-room-check="${id}-${seat||'all'}-${index}" aria-pressed="${roomChecks.has(id+'-'+(seat||'all')+'-'+index)}">${icon(roomChecks.has(id+'-'+(seat||'all')+'-'+index)?'circle-check':'minus')}${text}</button>`).join('')}<small>${t('Отметки только для примера, оборудование не подключено.','Belgilar faqat namuna uchun, jihozlar ulanmagan.')}</small></div>`);
+  }
   if (interactive && matchMedia('(max-width:760px)').matches) $('classroom-detail').scrollIntoView({block:'nearest',behavior:'auto'});
 }
 function selectArchitecture(id) {
@@ -188,15 +219,18 @@ function handlePresentationAction(target, value) {
   const focusSelector = `[data-demo-action="${CSS.escape(type)}"][data-demo-scope="${CSS.escape(scope)}"]${target.dataset.demoIndex!==undefined?`[data-demo-index="${CSS.escape(target.dataset.demoIndex)}"]`:''}${target.dataset.demoValue!==undefined?`[data-demo-value="${CSS.escape(target.dataset.demoValue)}"]`:''}`;
   // Both inline illustrations share their example, not the persisted workspace.
   selectStage(view.stage); selectArchitecture(view.architecture); selectPreview(view.preview);
+  renderExchangeExample();
   const nextFocus = document.querySelector(focusSelector);
   if (nextFocus && !nextFocus.disabled) nextFocus.focus({preventScroll:true});
   else document.querySelector(`.demo-screen[data-demo-scope="${CSS.escape(scope)}"] button:not(:disabled)`)?.focus({preventScroll:true});
 }
 function syncScenarioPreview() {
+  prefetchScenarioFrame(presentationDemo);
   if (presentationDemo.scenario !== view.scene) return;
   $('scene-preview')?.contentWindow?.postMessage({type:'university-panorama:scenario',caseId:presentationDemo.caseId,points:presentationDemo.points},location.origin);
 }
 function selectPreview(id) {
+  if (!$('program-panel')) return;
   if (!['prepare','practice','result'].includes(id)) return;
   view.preview = id;
   const state = workspace?.getState();
@@ -239,14 +273,17 @@ function render() {
   document.documentElement.lang = getLanguage();
   document.title = t('Учебный VR-комплекс · Предложение для университета','O‘quv VR-kompleksi · Universitet uchun taklif');
   $('proposal').innerHTML = renderProposal(getLanguage());
-  $('scene-preview').addEventListener('load',syncPreviewMotion);
-  previewObserver = new IntersectionObserver(entries=>{previewVisible=entries[0].isIntersecting;syncPreviewMotion();},{threshold:0.05});
-  previewObserver.observe($('scene-preview'));
+  if ($('scene-preview')) {
+    $('scene-preview').addEventListener('load',syncPreviewMotion);
+    previewObserver = new IntersectionObserver(entries=>{previewVisible=entries[0].isIntersecting;syncPreviewMotion();},{threshold:0.05});
+    previewObserver.observe($('scene-preview'));
+  }
   if (!isSystemOpen) $('workspace-slot').append(systemRoot);
   const data = content();
   document.querySelector('.process-steps').innerHTML = data.stages.map((stage,i)=>`<button id="stage-${i}" role="tab" aria-controls="process-content" aria-selected="false" data-process-stage="${i}"><span class="stage-index">${String(i+1).padStart(2,'0')}</span><span>${stage[0]}</span>${icon('arrow-right')}</button>`).join('');
   $('module-overview').innerHTML = modules.map(item=>`<article><strong>${escape(getLanguage()==='uz'?item.uzTitle:item.title)}</strong><small>${escape(getLanguage()==='uz'?item.uzDescription:item.description)}</small></article>`).join('');
   selectScene(view.scene); selectStage(view.stage); selectRole(view.role); selectZone(view.zone,view.seat); selectArchitecture(view.architecture); selectPreview(view.preview); selectExchange(view.exchange);
+  environmentIds.forEach(renderEnvironment); renderExchangeExample();selectDelivery(deliveryStep);
   renderDialogCopy();
   if (workspace) updateSummary(workspace.getState());
   navigationObserver = new IntersectionObserver(() => {
@@ -277,11 +314,27 @@ document.addEventListener('click', event=>{
   const target = event.target.closest('button,[data-zone]');
   if (!target || target.disabled) return;
   if (target.dataset.language) setLanguage(target.dataset.language);
+  else if (target.dataset.delivery!==undefined) selectDelivery(Number(target.dataset.delivery));
+  else if (target.hasAttribute('data-open-exchange')) {const details=$('integration-example').closest('details');details.open=true;$('integration-example').scrollIntoView({block:'start',behavior:'auto'});}
+  else if (target.dataset.roomCheck) {const key=target.dataset.roomCheck;roomChecks.has(key)?roomChecks.delete(key):roomChecks.add(key);selectZone(view.zone,view.seat);$('classroom-detail').querySelector(`[data-room-check="${key}"]`)?.focus({preventScroll:true});}
+  else if (target.dataset.envAction && environmentIds.includes(target.dataset.env)) {
+    const id=target.dataset.env,action=target.dataset.envAction;
+    if (action==='assessment') {
+      const example=environmentExamples[id];
+      presentationDemo={...createPresentationDemo(),scenario:id,caseId:example.caseId,points:[...example.points],seconds:example.points.length*30,log:[{kind:'start',seconds:0},...example.points.map((index,i)=>({kind:'point',index,seconds:(i+1)*30})),{kind:'end',seconds:example.points.length*30}],note:'',confirmed:false,exchange:'draft',packageData:null};
+      selectStage(5);selectArchitecture(view.architecture);renderExchangeExample();
+      $('process-content').scrollIntoView({block:'start',behavior:'auto'});return;
+    }
+    environmentExamples[id]=reduceEnvironmentExample(environmentExamples[id],{type:action,value:target.dataset.envValue,index:Number(target.dataset.envIndex)});
+    renderEnvironment(id);
+    const focus=action==='point'?`[data-env-action="point"][data-env-index="${environmentExamples[id].points.length}"]`:`[data-env-action="${action}"]${action==='case'?`[data-env-value="${target.dataset.envValue}"]`:''}`;
+    ($('environment-content-'+id).querySelector(focus)||$('environment-content-'+id).querySelector('[data-env-action="review"]'))?.focus({preventScroll:true});
+  }
   else if (target.dataset.caseId) {presentationDemo=reducePresentationDemo(presentationDemo,{type:'case',value:target.dataset.caseId});renderSceneCases();selectStage(view.stage);selectArchitecture(view.architecture);selectPreview(view.preview);}
   else if (target.dataset.demoAction) handlePresentationAction(target);
   else if (target.dataset.inlineStage !== undefined) {selectStage(Number(target.dataset.inlineStage));$('process-content').scrollIntoView({block:'start',behavior:'auto'});}
   else if (target.dataset.inlineComponent) {selectArchitecture(target.dataset.inlineComponent);$('architecture-detail').scrollIntoView({block:'start',behavior:'auto'});}
-  else if (target.dataset.openScene) openScene(target.dataset.openScene);
+  else if (target.dataset.openScene) openScene(target.dataset.openScene,environmentExamples[target.dataset.env] || presentationDemo);
   else if (target.dataset.closeDialog) $(target.dataset.closeDialog).close();
   else if (target.dataset.sceneTab) selectScene(target.dataset.sceneTab);
   else if (target.dataset.processStage !== undefined) selectStage(Number(target.dataset.processStage));
@@ -300,6 +353,7 @@ document.addEventListener('input',event=>{
   if(scope!=='process')selectStage(view.stage);
   if(scope!=='architecture')selectArchitecture(view.architecture);
   if(scope!=='preview')selectPreview(view.preview);
+  if(scope!=='integration')renderExchangeExample();
   const screen=event.target.closest('.demo-screen');
   const button=screen.querySelector('[data-demo-action="confirm"]');
   button.disabled=presentationDemo.phase!=='ended';button.innerHTML=icon('check-check')+t('Подтвердить пример','Namunani tasdiqlash');
@@ -332,12 +386,12 @@ document.addEventListener('keydown',event=>{
 window.addEventListener('message',event=>{
   if (event.origin !== location.origin) return;
   const fullFrame=$('scene-frame-slot').querySelector('iframe');
-  if (event.source !== $('scene-preview').contentWindow && (!fullFrame || event.source !== fullFrame.contentWindow)) return;
+  if (event.source !== $('scene-preview')?.contentWindow && (!fullFrame || event.source !== fullFrame.contentWindow)) return;
   if (event.data?.type==='university-panorama:module' && event.data.moduleId===8) { $('scene-dialog').close(); selectArchitecture('teacher'); requestAnimationFrame(()=>$('architecture-detail').scrollIntoView({block:'start',behavior:'auto'})); return; }
   if (event.data?.type!=='university-panorama:scene') return;
   const id=event.data.sceneId;
   if (!Object.hasOwn(content().scenes,id) && id!=='classroom') return;
-  if (event.source === $('scene-preview').contentWindow && content().scenes[id]) selectScene(id,false);
+  if (event.source === $('scene-preview')?.contentWindow && content().scenes[id]) selectScene(id,false);
   if (fullFrame && event.source === fullFrame.contentWindow) { $('scene-dialog-title').textContent=sceneTitle(id); fullFrame.title=sceneTitle(id); }
 });
 const initialAnchor = document.getElementById(location.hash.slice(1));

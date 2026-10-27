@@ -7,7 +7,8 @@
 // Local sidecar only; integration and session-note updates belong to the parent.
 // Remote knowledge was not consulted or updated: this task disallows networking.
 // durationSeconds is a proposed exercise budget, not a pass/fail threshold.
-export const scenarioLibrary = [
+import { applySimpleScenarioCopy } from './scenario-simple-copy.js?v=proposal20261027-r10final';
+export const scenarioLibrary = applySimpleScenarioCopy([
   {
     id: "courtyard-01", familyId: "courtyard", sceneId: "courtyard",
     title: "Праздник во дворе и доступный проход",
@@ -428,4 +429,4 @@ export const scenarioLibrary = [
     debrief: "Сравнить предупреждение с двух подходов, сообщение уборщика и наблюдаемые остатки. Оценить обоснованность сохранения ограничения, а не скорость открытия. Критерии согласует университет.",
     uzDebrief: "Ikki tomondagi ogohlantirish, tozalovchi xabari va ko'rinadigan qoldiqlarni solishtiring. Ochish tezligini emas, cheklovni saqlash asosliligini baholang. Mezonlar universitet bilan kelishiladi."
   }
-];
+]);

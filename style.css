@@ -1,7 +1,7 @@
 /* One outer grid for every slide. The owner's original kit remains unmodified. */
 *,*::before,*::after{box-sizing:border-box}
 :root{--page-gutter:24px;--slide-inset:40px;--header-offset:152px}
-html{scroll-behavior:smooth;scroll-padding-top:var(--header-offset)}
+html{scroll-behavior:auto;scroll-padding-top:var(--header-offset)}
 body{margin:0;background:var(--proposal-bg);color:var(--text);font:400 14px/1.6 var(--font)}
 button,input,select,textarea{font:inherit}button,a{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 button{cursor:pointer;color:var(--text)}button:disabled{cursor:not-allowed;opacity:.5}a{color:inherit}
