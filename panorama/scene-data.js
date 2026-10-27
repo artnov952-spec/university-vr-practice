@@ -1,6 +1,6 @@
 // One-point CG previews. Portal anchors were checked against the rendered images.
 // Each supplied image covers 180 horizontal / 90 vertical degrees, not a room.
-import { PANORAMA_MEDIA } from './media.js?v=proposal20261027-r12panorama';
+import { PANORAMA_MEDIA } from './media.js?v=proposal20261027-r13cardsroom';
 export const SCENE_ORDER = Object.freeze(['courtyard', 'entrance', 'traffic', 'market', 'classroom']);
 const shared = { angle: 180, verticalAngle: 90, wrap: false, initialYaw: 0, initialPitch: 0, zoomMin: .9, zoomMax: 1.8 };
 export const SCENES = {
@@ -13,7 +13,7 @@ export const SCENES = {
   market: { ...shared, id: 'market', label: 'Базар', asset: '.' + PANORAMA_MEDIA.market.src,
     hotspots: [] },
   classroom: { ...shared, id: 'classroom', label: 'Учебный класс', asset: '.' + PANORAMA_MEDIA.classroom.src,
-    hotspots: [{ id: 'teaching-area', label: 'Зона преподавателя', yaw: 0, pitch: 0, calibrated: false,
+    hotspots: [{ id: 'teaching-area', label: 'Зона преподавателя', yaw: 0, pitch: 17, calibrated: true,
       description: 'Назначение занятия, наблюдение за выполнением и разбор результатов.',
       info: { kind: 'teaching', moduleId: 8 } }] },
 };

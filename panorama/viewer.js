@@ -1,6 +1,6 @@
-import { SCENES, SCENE_ORDER, getScene, constrainView, directionAt, projectHotspot, inspectDimensions, clamp, resolveViewMode, fullscreenViewMode } from './scene-data.js?v=proposal20261027-r12panorama';
-import { LANGUAGES, normalizeLanguage, translate, localizeScene, applyViewerLanguage } from './locale.js?v=proposal20261027-r12panorama';
-import { normalizeVisualContext, scenarioVisualState, loadScenarioFrame } from '../scenario-visuals.js?v=proposal20261027-r12panorama';
+import { SCENES, SCENE_ORDER, getScene, constrainView, directionAt, projectHotspot, inspectDimensions, clamp, resolveViewMode, fullscreenViewMode } from './scene-data.js?v=proposal20261027-r13cardsroom';
+import { LANGUAGES, normalizeLanguage, translate, localizeScene, applyViewerLanguage } from './locale.js?v=proposal20261027-r13cardsroom';
+import { normalizeVisualContext, scenarioVisualState, loadScenarioFrame } from '../scenario-visuals.js?v=proposal20261027-r13cardsroom';
 
 export const normalizeTheme = () => 'light';
 

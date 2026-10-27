@@ -1,12 +1,13 @@
-import { mountWorkspace, calculateResult } from './workspace.js?v=proposal20261027-r12panorama';
-import { modules, scenarios } from './content.js?v=proposal20261027-r12panorama';
-import { getLanguage, setLanguage, subscribeLanguage } from './locale.js?v=proposal20261027-r12panorama';
-import { proposalContent } from './proposal-content.js?v=proposal20261027-r12panorama';
-import { renderProposal, escapeHtml as escape, icon } from './proposal-template.js?v=proposal20261027-r12panorama';
-import { createPresentationDemo, reducePresentationDemo, renderPresentationDemo } from './presentation-demo.js?v=proposal20261027-r12panorama';
-import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r12panorama';
-import { prefetchScenarioFrame } from './scenario-visuals.js?v=proposal20261027-r12panorama';
-import { environmentIds, createEnvironmentExamples, reduceEnvironmentExample, renderEnvironmentExample } from './proposal-environments.js?v=proposal20261027-r12panorama';
+import { mountWorkspace, calculateResult } from './workspace.js?v=proposal20261027-r13cardsroom';
+import { modules, scenarios } from './content.js?v=proposal20261027-r13cardsroom';
+import { getLanguage, setLanguage, subscribeLanguage } from './locale.js?v=proposal20261027-r13cardsroom';
+import { proposalContent } from './proposal-content.js?v=proposal20261027-r13cardsroom';
+import { renderProposal, escapeHtml as escape, icon } from './proposal-template.js?v=proposal20261027-r13cardsroom';
+import { createPresentationDemo, reducePresentationDemo, renderPresentationDemo } from './presentation-demo.js?v=proposal20261027-r13cardsroom';
+import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r13cardsroom';
+import { prefetchScenarioFrame } from './scenario-visuals.js?v=proposal20261027-r13cardsroom';
+import { environmentIds, createEnvironmentExamples, reduceEnvironmentExample, renderEnvironmentExample } from './proposal-environments.js?v=proposal20261027-r13cardsroom';
+import { PANORAMA_MEDIA } from './panorama/media.js?v=proposal20261027-r13cardsroom';
 
 const $ = id => document.getElementById(id);
 const t = (ru, uz) => getLanguage() === 'uz' ? uz : ru;
@@ -80,7 +81,7 @@ function openModule(id) {
 }
 function panoramaURL(id, embed = false, context = presentationDemo) {
   const visual = context?.caseId?.startsWith(id+'-') ? '&case='+encodeURIComponent(context.caseId)+'&points='+encodeURIComponent(context.points.join(',')) : '';
-  return './panorama/viewer.html?v=proposal20261027-r12panorama&scene='+encodeURIComponent(id)+'&theme=light&lang='+getLanguage()+(embed?'&embed=1':'')+visual;
+  return './panorama/viewer.html?v=proposal20261027-r13cardsroom&scene='+encodeURIComponent(id)+'&theme=light&lang='+getLanguage()+(embed?'&embed=1':'')+visual;
 }
 function sceneTitle(id) { return id === 'classroom' ? t('Учебная аудитория','O‘quv auditoriyasi') : content().scenes[id]?.title; }
 function openScene(id, context = presentationDemo) {
@@ -176,9 +177,9 @@ function selectZone(id, seat, interactive = false) {
     const selected = element.dataset.zone === id && (!seat || element.dataset.seat === String(seat));
     element.classList.toggle('active', selected); element.setAttribute('aria-pressed',String(selected));
   });
-  $('classroom-detail').innerHTML = `<p class="eyebrow">${t('Назначение зоны','Hudud vazifasi')}${seat?' / '+t('место','joy')+' '+escape(seat):''}</p><h3>${zone[0]}</h3><p>${zone[1]}</p><ul>${zone[2].map(item=>`<li>${item}</li>`).join('')}</ul><div class="action-row">${id==='screen'?`<button class="btn btn--primary" data-inline-component="teacher">${t('Показать пульт преподавателя','O‘qituvchi panelini ko‘rsatish')} ${icon('arrow-right')}</button>`:''}<button class="btn btn--soft" data-open-scene="classroom">${t('Панорама аудитории','Auditoriya panoramasi')} ${icon('eye')}</button></div>`;
+  $('classroom-detail').innerHTML = `<figure class="classroom-render"><img src="${PANORAMA_MEDIA.classroom.src}" width="${PANORAMA_MEDIA.classroom.width}" height="${PANORAMA_MEDIA.classroom.height}" alt="${t('Учебный класс: рабочие места с VR, преподаватель и общий экран. CG-концепция.','O‘quv xonasi: VR bilan ish joylari, o‘qituvchi va umumiy ekran. CG-konsepsiya.')}" loading="lazy"><figcaption>${t('Пример размещения оборудования','Jihozlarni joylashtirish namunasi')} · CG</figcaption></figure><p class="eyebrow">${t('Аудитория','Auditoriya')}${seat?' / '+t('рабочее место','ish joyi')+' '+escape(seat):''}</p><h3>${zone[0]}</h3><p>${zone[1]}</p><ul>${zone[2].map(item=>`<li>${item}</li>`).join('')}</ul><div class="action-row">${id==='teacher'?`<button class="btn btn--primary" data-inline-component="teacher">${t('Показать пульт преподавателя','O‘qituvchi panelini ko‘rsatish')} ${icon('arrow-right')}</button>`:id==='screen'?`<button class="btn btn--primary" data-inline-component="display">${t('Посмотреть общий экран','Umumiy ekranni ko‘rish')} ${icon('monitor')}</button>`:''}<button class="btn btn--soft" data-open-scene="classroom">${t('Панорама аудитории','Auditoriya panoramasi')} ${icon('eye')}</button></div>`;
   if (id!=='intro') {
-    const checks={screen:[t('Экран виден группе','Ekran guruhga ko‘rinadi'),t('Пульт преподавателя готов','O‘qituvchi paneli tayyor')],desks:[t('Проход между столами свободен','Stollar oralig‘i ochiq'),t('Материалы занятия открыты','Mashg‘ulot materiallari ochiq')],practice:[t('В зоне нет мебели и людей','Hududda mebel va odamlar yo‘q'),t('Границы практики проверены','Amaliyot chegaralari tekshirilgan')],storage:[t('Комплекты пронумерованы','To‘plamlar raqamlangan'),t('Кабели не мешают проходу','Simlar yo‘lni to‘smaydi')]};
+    const checks={teacher:[t('Пульт преподавателя готов','O‘qituvchi paneli tayyor'),t('Группа и сценарий выбраны','Guruh va ssenariy tanlandi')],screen:[t('Изображение видно всей группе','Tasvir butun guruhga ko‘rinadi'),t('Нужная попытка выбрана','Kerakli urinish tanlandi')],desks:[t('Компьютер и VR-комплект готовы','Kompyuter va VR-to‘plam tayyor'),t('Рабочее место и проход свободны','Ish joyi va yo‘lak ochiq')]};
     $('classroom-detail').insertAdjacentHTML('beforeend',`<div class="room-checks"><h4>${t('Проверка перед занятием / пример','Mashg‘ulotdan oldingi tekshiruv / namuna')}</h4>${checks[id].map((text,index)=>`<button type="button" data-room-check="${id}-${seat||'all'}-${index}" aria-pressed="${roomChecks.has(id+'-'+(seat||'all')+'-'+index)}">${icon(roomChecks.has(id+'-'+(seat||'all')+'-'+index)?'circle-check':'minus')}${text}</button>`).join('')}<small>${t('Отметки только для примера, оборудование не подключено.','Belgilar faqat namuna uchun, jihozlar ulanmagan.')}</small></div>`);
   }
   if (interactive && matchMedia('(max-width:760px)').matches) $('classroom-detail').scrollIntoView({block:'nearest',behavior:'auto'});

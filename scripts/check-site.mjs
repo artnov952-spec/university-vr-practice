@@ -10,6 +10,7 @@ import { createPresentationDemo, renderPresentationDemo } from '../presentation-
 import './check-scenario-visuals.mjs';
 import './check-proposal-pages.mjs';
 import './check-panorama-only.mjs';
+import './check-classroom-cards.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const files = [];

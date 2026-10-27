@@ -1,11 +1,11 @@
-import { scenarios as sourceScenarios, modules as sourceModules } from './content.js?v=proposal20261027-r12panorama';
-import { getLanguage, setLanguage, subscribeLanguage } from './locale.js?v=proposal20261027-r12panorama';
-import { translate, localizedField, seedTranslations } from './workspace-i18n.js?v=proposal20261027-r12panorama';
-import { createExchange, exchangeRows, validateExchange, exchangeCSV, EXCHANGE_FIELDS, EXCHANGE_TABS } from './workspace-exchange.js?v=proposal20261027-r12panorama';
-import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r12panorama';
-import { renderScenarioVisual, visualForAttempt, prefetchScenarioFrame } from './scenario-visuals.js?v=proposal20261027-r12panorama';
-export { translate, localizedField } from './workspace-i18n.js?v=proposal20261027-r12panorama';
-export { exchangeRows, validateExchange, exchangeCSV } from './workspace-exchange.js?v=proposal20261027-r12panorama';
+import { scenarios as sourceScenarios, modules as sourceModules } from './content.js?v=proposal20261027-r13cardsroom';
+import { getLanguage, setLanguage, subscribeLanguage } from './locale.js?v=proposal20261027-r13cardsroom';
+import { translate, localizedField, seedTranslations } from './workspace-i18n.js?v=proposal20261027-r13cardsroom';
+import { createExchange, exchangeRows, validateExchange, exchangeCSV, EXCHANGE_FIELDS, EXCHANGE_TABS } from './workspace-exchange.js?v=proposal20261027-r13cardsroom';
+import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r13cardsroom';
+import { renderScenarioVisual, visualForAttempt, prefetchScenarioFrame } from './scenario-visuals.js?v=proposal20261027-r13cardsroom';
+export { translate, localizedField } from './workspace-i18n.js?v=proposal20261027-r13cardsroom';
+export { exchangeRows, validateExchange, exchangeCSV } from './workspace-exchange.js?v=proposal20261027-r13cardsroom';
 
 // Local demo only. PDF pages 7-23 define the scope, not an approved scoring method.
 // Integration: mountWorkspace(root, { onOpenScene, onStateChange }); no parent changes.
@@ -673,7 +673,7 @@ export function mountWorkspace(root, options = {}) {
   frame.setAttribute('data-vr-workspace', '');
   const stylesheet = doc.createElement('link');
   stylesheet.rel = 'stylesheet';
-  stylesheet.href = new URL('./workspace.css?v=proposal20261027-r12panorama', import.meta.url).href;
+  stylesheet.href = new URL('./workspace.css?v=proposal20261027-r13cardsroom', import.meta.url).href;
   if (!doc.head?.querySelector?.('link[href*="workspace.css"]')) root.append(stylesheet);
   root.append(frame);
 
