@@ -1,5 +1,4 @@
-import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r10final';
-import { PANORAMA_MEDIA } from './panorama/media.js?v=proposal20261027-r10final';
+import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r11initial';
 
 // Whole, fixed-camera renders. No independently scaled people, props, masks or sprite atlases.
 export const SCENARIO_FRAMES = Object.freeze(Object.fromEntries(scenarioLibrary.map(item => [item.id,
@@ -27,7 +26,7 @@ export function scenarioVisualState(value) {
   let step=0;
   while(step<5&&context.points.includes(step))step++;
   return {caseId:context.caseId,sceneId:item.sceneId,step,pending:context.points.length>step,item,
-    frame:step?SCENARIO_FRAMES[item.id][step-1]:PANORAMA_MEDIA[item.sceneId]};
+    frame:SCENARIO_FRAMES[item.id][Math.max(0,step-1)]};
 }
 
 const escape=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -35,8 +34,8 @@ export function renderVisualStatus(value,language='ru') {
   const visual=scenarioVisualState(value);
   if(!visual)return '';
   const uz=language==='uz';
-  const caption=visual.step?visual.item.points[visual.step-1][uz?'uzTitle':'title']:uz?'Harakatni tanlang: sahna holati o‘zgaradi.':'Выберите действие: состояние сцены изменится.';
-  return `<div class="scenario-visual-status" role="status"><b>${uz?'Sahna':'Сцена'} ${visual.step}/5</b><span>${escape(caption)}${visual.pending?`<small>${uz?'Oldingi nazorat nuqtasi qayd etilmaguncha oqibat ko‘rsatilmaydi.':'Последствие ожидает предыдущую контрольную точку.'}</small>`:''}</span></div>`;
+  const caption=visual.step?visual.item.points[visual.step-1][uz?'uzTitle':'title']:uz?'Vaziyat ochildi. Birinchi amalni tanlang.':'Ситуация загружена. Выберите первое действие.';
+  return `<div class="scenario-visual-status" role="status"><b>${uz?'Amallar':'Действия'} ${visual.step}/5</b><span>${escape(caption)}${visual.pending?`<small>${uz?'Oldingi nazorat nuqtasi qayd etilmaguncha oqibat ko‘rsatilmaydi.':'Последствие ожидает предыдущую контрольную точку.'}</small>`:''}</span></div>`;
 }
 export function renderScenarioVisual(value,language='ru') {
   const visual=scenarioVisualState(value);
@@ -67,6 +66,6 @@ export function prefetchScenarioFrame(value) {
 }
 export async function loadScenarioFrame(base,value) {
   const visual=scenarioVisualState(value);
-  if(!visual?.step)return base;
+  if(!visual)return base;
   return frameImage(visual.frame);
 }

@@ -14,9 +14,16 @@ for (const language of ['ru','uz']) {
   assert.equal((hero.match(/class="mosaic-tile"/g)||[]).length,4);
   assert.ok(!hero.includes('<iframe')&&!hero.includes('data-open-scene'));
   assert.equal((html.match(/id="expand-workspace"/g)||[]).length,1);
+  assert.ok(html.slice(0,html.indexOf('<main>')).includes('id="expand-workspace"'),'Program entry is visible in the sticky header');
+  assert.ok(html.includes('href="#demo"'));
   assert.ok(html.includes('id="integration-example"'));
+  const initialImages=new Set();
   for(const item of scenarioLibrary) {
     let state={caseId:item.id,points:[],review:false};
+    const initial=renderEnvironmentExample(item.sceneId,state,language);
+    const initialSrc=initial.match(/class="scenario-frame" src="([^"]+)"/)?.[1];
+    assert.ok(initialSrc?.includes(item.id),'Selecting a case immediately shows that case, even at 0/5');
+    initialImages.add(initialSrc);
     const other=createEnvironmentExamples();
     assert.equal(reduceEnvironmentExample(state,{type:'point',index:3}),state);
     assert.equal(reduceEnvironmentExample(state,{type:'case',value:environmentIds.find(id=>id!==item.sceneId)+'-01'}),state);
@@ -41,5 +48,6 @@ for (const language of ['ru','uz']) {
       assert.ok(point.uzTitle&&point.uzDescription);
     }
   }
+  assert.equal(initialImages.size,20);
 }
 console.log(JSON.stringify({result:'passed',proposalPages:9,independentEnvironments:4,scenarios:20,plainLanguageActions:100,languages:2,fullProgramEntrances:1},null,2));

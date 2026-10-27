@@ -1,12 +1,12 @@
-import { mountWorkspace, calculateResult } from './workspace.js?v=proposal20261027-r10final';
-import { modules, scenarios } from './content.js?v=proposal20261027-r10final';
-import { getLanguage, setLanguage, subscribeLanguage } from './locale.js?v=proposal20261027-r10final';
-import { proposalContent } from './proposal-content.js?v=proposal20261027-r10final';
-import { renderProposal, escapeHtml as escape, icon } from './proposal-template.js?v=proposal20261027-r10final';
-import { createPresentationDemo, reducePresentationDemo, renderPresentationDemo } from './presentation-demo.js?v=proposal20261027-r10final';
-import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r10final';
-import { prefetchScenarioFrame } from './scenario-visuals.js?v=proposal20261027-r10final';
-import { environmentIds, createEnvironmentExamples, reduceEnvironmentExample, renderEnvironmentExample } from './proposal-environments.js?v=proposal20261027-r10final';
+import { mountWorkspace, calculateResult } from './workspace.js?v=proposal20261027-r11initial';
+import { modules, scenarios } from './content.js?v=proposal20261027-r11initial';
+import { getLanguage, setLanguage, subscribeLanguage } from './locale.js?v=proposal20261027-r11initial';
+import { proposalContent } from './proposal-content.js?v=proposal20261027-r11initial';
+import { renderProposal, escapeHtml as escape, icon } from './proposal-template.js?v=proposal20261027-r11initial';
+import { createPresentationDemo, reducePresentationDemo, renderPresentationDemo } from './presentation-demo.js?v=proposal20261027-r11initial';
+import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r11initial';
+import { prefetchScenarioFrame } from './scenario-visuals.js?v=proposal20261027-r11initial';
+import { environmentIds, createEnvironmentExamples, reduceEnvironmentExample, renderEnvironmentExample } from './proposal-environments.js?v=proposal20261027-r11initial';
 
 const $ = id => document.getElementById(id);
 const t = (ru, uz) => getLanguage() === 'uz' ? uz : ru;
@@ -40,6 +40,7 @@ const returnFocus = new WeakMap();
 let workspace, navigationObserver, headerObserver, previewObserver;
 let previousModule;
 let lockedScroll = null;
+let demoReturnHash = '';
 let previewVisible = false;
 
 function syncPreviewMotion() {
@@ -79,7 +80,7 @@ function openModule(id) {
 }
 function panoramaURL(id, embed = false, context = presentationDemo) {
   const visual = context?.caseId?.startsWith(id+'-') ? '&case='+encodeURIComponent(context.caseId)+'&points='+encodeURIComponent(context.points.join(',')) : '';
-  return './panorama/viewer.html?v=proposal20261027-r10final&scene='+encodeURIComponent(id)+'&theme=light&lang='+getLanguage()+(embed?'&embed=1':'')+visual;
+  return './panorama/viewer.html?v=proposal20261027-r11initial&scene='+encodeURIComponent(id)+'&theme=light&lang='+getLanguage()+(embed?'&embed=1':'')+visual;
 }
 function sceneTitle(id) { return id === 'classroom' ? t('Учебная аудитория','O‘quv auditoriyasi') : content().scenes[id]?.title; }
 function openScene(id, context = presentationDemo) {
@@ -311,7 +312,7 @@ subscribeLanguage(()=>{render(); document.querySelector('[data-language="'+getLa
 
 document.addEventListener('click', event=>{
   if (event.composedPath().some(node=>node.hasAttribute?.('data-vr-workspace'))) return;
-  const target = event.target.closest('button,[data-zone]');
+  const target = event.target.closest('button,[data-zone],#expand-workspace');
   if (!target || target.disabled) return;
   if (target.dataset.language) setLanguage(target.dataset.language);
   else if (target.dataset.delivery!==undefined) selectDelivery(Number(target.dataset.delivery));
@@ -343,7 +344,7 @@ document.addEventListener('click', event=>{
   else if (target.dataset.arch) selectArchitecture(target.dataset.arch);
   else if (target.dataset.preview) selectPreview(target.dataset.preview);
   else if (target.dataset.exchange) selectExchange(target.dataset.exchange);
-  else if (target.id === 'expand-workspace') openModule(1);
+  else if (target.id === 'expand-workspace') {event.preventDefault();demoReturnHash=location.hash;history.pushState(null,'','#demo');openModule(1);}
   else if (target.id === 'open-about') showDialog('about-dialog');
 });
 document.addEventListener('input',event=>{
@@ -366,7 +367,7 @@ document.addEventListener('change',event=>{
 });
 document.querySelectorAll('dialog').forEach(dialog=>{
   dialog.addEventListener('close',()=>{
-    if (dialog.id==='system-dialog') { $('workspace-slot').append(systemRoot); selectPreview(view.preview); }
+    if (dialog.id==='system-dialog') { $('workspace-slot').append(systemRoot); selectPreview(view.preview);if(location.hash==='#demo')history.replaceState(null,'',location.pathname+location.search+(demoReturnHash||'#workspace')); }
     if (dialog.id==='scene-dialog') $('scene-frame-slot').replaceChildren();
     syncDialogLock();
     const previous = returnFocus.get(dialog); if (previous?.isConnected) previous.focus({preventScroll:true});
@@ -395,7 +396,9 @@ window.addEventListener('message',event=>{
   if (fullFrame && event.source === fullFrame.contentWindow) { $('scene-dialog-title').textContent=sceneTitle(id); fullFrame.title=sceneTitle(id); }
 });
 const initialAnchor = document.getElementById(location.hash.slice(1));
-if (initialAnchor) requestAnimationFrame(()=>initialAnchor.scrollIntoView({block:'start',behavior:'auto'}));
+if (location.hash==='#demo') openModule(1);
+else if (initialAnchor) requestAnimationFrame(()=>initialAnchor.scrollIntoView({block:'start',behavior:'auto'}));
+window.addEventListener('hashchange',()=>{if(location.hash==='#demo')openModule(1);else if($('system-dialog').open)$('system-dialog').close();});
 const revealObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{
   if(entry.isIntersecting){entry.target.classList.add('is-revealed');revealObserver.unobserve(entry.target);}
 }),{threshold:.1});

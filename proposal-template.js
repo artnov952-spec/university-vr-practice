@@ -1,5 +1,5 @@
-import { proposalContent } from './proposal-content.js?v=proposal20261027-r10final';
-import { PANORAMA_MEDIA } from './panorama/media.js?v=proposal20261027-r10final';
+import { proposalContent } from './proposal-content.js?v=proposal20261027-r11initial';
+import { PANORAMA_MEDIA } from './panorama/media.js?v=proposal20261027-r11initial';
 export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const icon = name => `<svg class="i" aria-hidden="true"><use href="./assets/ui-icons/sprite.svg#i-${name}"></use></svg>`;
 
@@ -13,7 +13,7 @@ export function renderProposal(language) {
   <header class="header wrap">
     <div class="header-top">
       <a class="identity" href="#purpose"><img src="./assets/university-logo.png" width="56" height="56" alt="${t('Эмблема с официального сайта университета','Universitet rasmiy saytidagi gerb')}"><span>${t('Университет общественной безопасности','Jamoat xavfsizligi universiteti')}<small>${t('Республика Узбекистан','O‘zbekiston Respublikasi')}</small></span></a>
-      <div class="header-actions"><div class="language-switch" role="group" aria-label="${t('Язык предложения и программы','Taklif va dastur tili')}">${languageButton('ru')}${languageButton('uz')}</div></div>
+      <div class="header-actions"><div class="language-switch" role="group" aria-label="${t('Язык предложения и программы','Taklif va dastur tili')}">${languageButton('ru')}${languageButton('uz')}</div><a class="btn btn--primary demo-entry" href="#demo" id="expand-workspace">${icon('monitor')}${t('Демо программы','Dastur demosi')}${icon('arrow-up-right')}</a></div>
     </div>
     <nav class="navigation" aria-label="${t('Разделы предложения','Taklif bo‘limlari')}">${data.nav.map(item => `<a href="#${item.id}">${item.title}</a>`).join('')}</nav>
   </header>
@@ -38,7 +38,6 @@ export function renderProposal(language) {
       ].map(([title,text],i)=>`<article><span class="step-dot">0${i+1}</span><div><h3>${title}</h3><p>${text}</p></div></article>`).join('')}<button class="btn btn--soft" data-inline-stage="5">${t('Попробовать расчет','Hisobni sinab ko‘rish')} ${icon('arrow-right')}</button></div><div class="assessment-live"><p class="eyebrow">${t('Пример карточки / учебные данные','Karta namunasi / o‘quv ma’lumotlari')}</p><div id="assessment-summary"></div><a class="text-button" href="#integration">${t('Подготовка результата для E-reyting','Natijani E-reyting uchun tayyorlash')} ${icon('arrow-right')}</a></div></div></div></details>
       <details class="module-details"><summary>${t('Состав программы: 14 модулей','Dastur tarkibi: 14 modul')}${icon('plus')}</summary><div id="module-overview" class="module-overview"></div></details>
 
-      <div class="stand-entry"><div><h3>${t('Рабочая демонстрация','Ishchi namoyish')}</h3><p>${t('Готовые учебные данные. Можно выбрать занятие, пройти попытку, проверить расчет и подготовить пакет для E-reyting.','Tayyor o‘quv ma’lumotlari. Mashg‘ulotni tanlash, urinishni bajarish, hisobni tekshirish va E-reyting uchun paket tayyorlash mumkin.')}</p></div><button class="btn btn--primary" id="expand-workspace">${t('Открыть программу','Dasturni ochish')} ${icon('arrow-up-right')}</button></div>
       <div id="workspace-slot" hidden></div>
 
       <div class="role-block" id="roles"><p class="eyebrow">${t('Ответственность участников','Ishtirokchilar mas’uliyati')}</p><div class="role-tabs" role="tablist" aria-label="${t('Роли пользователей','Foydalanuvchi rollari')}">${Object.entries(data.roles).map(([id,item],i)=>`<button id="role-${id}" role="tab" aria-selected="${i===0}" aria-controls="role-panel" data-role="${id}">${item[0]}</button>`).join('')}</div><article class="role-panel" id="role-panel" role="tabpanel" aria-labelledby="role-teacher"></article></div>

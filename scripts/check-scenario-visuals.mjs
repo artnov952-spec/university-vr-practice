@@ -8,7 +8,7 @@ import { createPresentationDemo, reducePresentationDemo, presentationScore } fro
 import { readParentCommand, normalizeTheme } from '../panorama/viewer.js';
 
 assert.deepEqual(Object.keys(SCENARIO_FRAMES).sort(), scenarioLibrary.map(item=>item.id).sort());
-let transitions=0;
+let transitions=0, imageChanges=0;
 for(const item of scenarioLibrary) {
   let state=reducePresentationDemo(createPresentationDemo(),{type:'case',value:item.id});
   state={...state,caseId:item.id,scenario:item.sceneId,checks:[true,true,true],phase:'ready'};
@@ -19,7 +19,8 @@ for(const item of scenarioLibrary) {
     state=reducePresentationDemo(state,{type:'point',index});
     const visual=scenarioVisualState(state);
     assert.equal(visual.step,index+1);
-    assert.notEqual(visual.frame.src,previous,`${item.id} action ${index+1} must select its own whole-frame render`);
+    if(index===0) assert.equal(visual.frame.src,previous,'The first observation starts from the already visible situation, not an empty environment');
+    else {assert.notEqual(visual.frame.src,previous,`${item.id} action ${index+1} must select its own whole-frame render`);imageChanges++;}
     previous=visual.frame.src; transitions++;
     assert.equal(reducePresentationDemo(state,{type:'point',index}),state,'Duplicate cannot change state');
     assert.equal(reducePresentationDemo({...before,paused:true},{type:'point',index}).points.length,before.points.length,'Pause blocks effects');
@@ -82,7 +83,9 @@ const nativeImage=globalThis.Image;
 try {
   globalThis.Image=class{set src(value){this.value=value;queueMicrotask(()=>this.onload?.());}get src(){return this.value;}};
   const base={src:'base'};
-  assert.equal(await loadScenarioFrame(base,{caseId:'courtyard-01',points:[]}),base);
+  assert.equal(await loadScenarioFrame(base,null),base);
+  const initial=await loadScenarioFrame(base,{caseId:'courtyard-01',points:[]});
+  assert.ok(new URL(initial.src).pathname.endsWith('/assets/scenario-frames/courtyard-01/step-1.jpg'));
   const selected=await loadScenarioFrame(base,{caseId:'courtyard-01',points:[0,1]});
   assert.ok(new URL(selected.src).pathname.endsWith('/assets/scenario-frames/courtyard-01/step-2.jpg'));
   assert.equal(await loadScenarioFrame(base,{caseId:'courtyard-01',points:[0,1]}),selected);
@@ -91,4 +94,4 @@ const rendererSource=await readFile(new URL('../scenario-visuals.js',import.meta
 assert.ok(!/drawImage|createElement\('canvas'\)|VISUAL_SPRITES|renderVisualLayers/.test(rendererSource),'No sprite compositing path remains');
 const proposal=await readFile(new URL('../proposal-template.js',import.meta.url),'utf8');
 assert.ok(!proposal.includes('data-theme-toggle'));
-console.log(JSON.stringify({result:'passed',scenarios:20,wholeFrameRenders:hashes.size,frameBytes,visualTransitions:transitions,languages:2,spriteLayers:0,guards:['duplicate','pause','missing prerequisite','legacy snapshot','same-origin parent','light-only storage migration']},null,2));
+console.log(JSON.stringify({result:'passed',scenarios:20,wholeFrameRenders:hashes.size,frameBytes,actionChecks:transitions,imageChanges,distinctInitialScenes:20,languages:2,spriteLayers:0,guards:['duplicate','pause','missing prerequisite','legacy snapshot','same-origin parent','light-only storage migration']},null,2));

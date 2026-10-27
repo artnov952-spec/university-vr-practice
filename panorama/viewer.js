@@ -1,6 +1,6 @@
-import { SCENES, SCENE_ORDER, getScene, constrainView, directionAt, projectHotspot, inspectDimensions, clamp, resolveViewMode, fullscreenViewMode, fitOriginalImage, projectOriginalHotspot } from './scene-data.js?v=proposal20261027-r10final';
-import { LANGUAGES, normalizeLanguage, translate, localizeScene, applyViewerLanguage } from './locale.js?v=proposal20261027-r10final';
-import { normalizeVisualContext, scenarioVisualState, loadScenarioFrame } from '../scenario-visuals.js?v=proposal20261027-r10final';
+import { SCENES, SCENE_ORDER, getScene, constrainView, directionAt, projectHotspot, inspectDimensions, clamp, resolveViewMode, fullscreenViewMode, fitOriginalImage, projectOriginalHotspot } from './scene-data.js?v=proposal20261027-r11initial';
+import { LANGUAGES, normalizeLanguage, translate, localizeScene, applyViewerLanguage } from './locale.js?v=proposal20261027-r11initial';
+import { normalizeVisualContext, scenarioVisualState, loadScenarioFrame } from '../scenario-visuals.js?v=proposal20261027-r11initial';
 
 export const normalizeTheme = () => 'light';
 

@@ -1,7 +1,7 @@
-import { escapeHtml as escape, icon } from './proposal-template.js?v=proposal20261027-r10final';
-import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r10final';
-import { PANORAMA_MEDIA } from './panorama/media.js?v=proposal20261027-r10final';
-import { renderScenarioVisual } from './scenario-visuals.js?v=proposal20261027-r10final';
+import { escapeHtml as escape, icon } from './proposal-template.js?v=proposal20261027-r11initial';
+import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r11initial';
+import { PANORAMA_MEDIA } from './panorama/media.js?v=proposal20261027-r11initial';
+import { renderScenarioVisual, scenarioVisualState } from './scenario-visuals.js?v=proposal20261027-r11initial';
 
 const SCENES = ['courtyard', 'entrance', 'traffic', 'market'];
 const REGISTRIES = ['groups', 'scenarios', 'attempts'];
@@ -66,7 +66,7 @@ export function renderPresentationDemo({ stage, component, state, language = 'ru
   const selectedCase=scenarioLibrary.find(item=>item.id===state.caseId) || scenarioLibrary.find(item=>item.sceneId===state.scenario);
   const local=(item,key='title')=>escape(language==='uz'?item['uz'+key[0].toUpperCase()+key.slice(1)]:item[key]);
   const sceneName = local(selectedCase);
-  const image = PANORAMA_MEDIA[state.scenario];
+  const image = scenarioVisualState({caseId:selectedCase.id,points:[]}).frame;
   const title = {
     catalog: t('Каталог учебных ситуаций', 'O‘quv vaziyatlari katalogi'),
     prepare: component ? t('Пульт преподавателя', 'O‘qituvchi boshqaruv paneli') : t('Подготовка к занятию', 'Mashg‘ulotga tayyorgarlik'),

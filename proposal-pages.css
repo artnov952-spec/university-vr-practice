@@ -6,6 +6,8 @@ html{scroll-behavior:auto}
 @media(max-width:760px){.environment-action strong{font-size:12px}.environment-cases button{font-size:11px}}
 .wrap{width:min(1640px,calc(100% - var(--page-gutter)*2))}
 .header-top{padding:10px 22px}.header .identity{max-width:660px;font-size:13px}.identity img{width:42px;height:42px}
+.demo-entry{text-decoration:none;font-size:13px;font-weight:600;min-height:42px;padding:11px 16px;white-space:nowrap}
+@media(max-width:760px){.header-top{flex-wrap:wrap}.header .identity{max-width:none;width:100%}.header-actions{width:100%;justify-content:space-between}.demo-entry{font-size:12px;min-height:40px;padding:10px 14px}}
 .navigation{padding:5px 12px 8px}.navigation a{font-size:12px;padding:8px 10px}
 .slide{margin-top:20px}.section-heading{gap:28px;margin-bottom:24px}
 .hero{gap:30px}.hero-copy{max-width:650px}.hero h1{font-size:clamp(38px,3.5vw,58px)}
