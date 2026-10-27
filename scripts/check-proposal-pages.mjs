@@ -1,20 +1,28 @@
 import assert from 'node:assert/strict';
-import { renderProposal } from '../proposal-template.js';
+import { renderProposal, SALES_SECTIONS } from '../proposal-template.js';
 import { scenarioLibrary } from '../scenario-library.js';
 import { environmentIds,createEnvironmentExamples,reduceEnvironmentExample,renderEnvironmentExample } from '../proposal-environments.js';
 
 for (const language of ['ru','uz']) {
   const html=renderProposal(language);
   let previous=-1;
-  for(const id of ['purpose','workspace',...environmentIds.map(id=>'environment-'+id),'integration','classroom','architecture']) {
+  for(const id of SALES_SECTIONS) {
     const position=html.indexOf(`id="${id}"`);
     assert.ok(position>previous,`${id} follows the proposal narrative`);previous=position;
   }
-  const hero=html.slice(html.indexOf('id="purpose"'),html.indexOf('id="workspace"'));
-  assert.equal((hero.match(/class="mosaic-tile"/g)||[]).length,4);
+  const hero=html.slice(html.indexOf('id="purpose"'),html.indexOf('id="experience"'));
+  assert.equal((hero.match(/data-hero-layer=/g)||[]).length,2);
+  assert.ok(hero.includes('id="hero-play"')&&hero.includes('id="hero-film-progress"'));
   assert.ok(!hero.includes('<iframe')&&!hero.includes('data-open-scene'));
+  assert.equal((html.match(/class="sales-environment"/g)||[]).length,4);
+  assert.equal((html.match(/id="environment-content-/g)||[]).length,1,'Only one full example on the primary page');
+  assert.ok(html.includes('<details class="sales-technical" id="technical-details">'),'Operating detail is initially collapsed');
+  assert.equal((html.match(/<section\b/g)||[]).length,7);
+  assert.ok(html.includes('id="open-pilot"'));
+  assert.ok(html.includes('dyfed-powys.police.uk')&&html.includes('fpi.omb.gov/program/16.054.html'));
+  assert.ok(!html.includes('10 курсантов одновременно'));
   assert.equal((html.match(/id="expand-workspace"/g)||[]).length,1);
-  assert.ok(html.slice(0,html.indexOf('<main>')).includes('id="expand-workspace"'),'Program entry is visible in the sticky header');
+  assert.ok(html.slice(0,html.indexOf('<main ')).includes('id="expand-workspace"'),'Program entry is visible in the sticky header');
   assert.ok(html.includes('href="#demo"'));
   assert.ok(html.includes('id="integration-example"'));
   const initialImages=new Set();
@@ -50,4 +58,4 @@ for (const language of ['ru','uz']) {
   }
   assert.equal(initialImages.size,20);
 }
-console.log(JSON.stringify({result:'passed',proposalPages:9,independentEnvironments:4,scenarios:20,plainLanguageActions:100,languages:2,fullProgramEntrances:1},null,2));
+console.log(JSON.stringify({result:'passed',proposalPages:7,primaryExamples:1,compactEnvironments:4,independentEnvironments:4,scenarios:20,plainLanguageActions:100,languages:2,fullProgramEntrances:1},null,2));

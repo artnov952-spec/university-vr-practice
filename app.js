@@ -1,13 +1,16 @@
-import { mountWorkspace, calculateResult } from './workspace.js?v=proposal20261027-r13cardsroom';
-import { modules, scenarios } from './content.js?v=proposal20261027-r13cardsroom';
-import { getLanguage, setLanguage, subscribeLanguage } from './locale.js?v=proposal20261027-r13cardsroom';
-import { proposalContent } from './proposal-content.js?v=proposal20261027-r13cardsroom';
-import { renderProposal, escapeHtml as escape, icon } from './proposal-template.js?v=proposal20261027-r13cardsroom';
-import { createPresentationDemo, reducePresentationDemo, renderPresentationDemo } from './presentation-demo.js?v=proposal20261027-r13cardsroom';
-import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r13cardsroom';
-import { prefetchScenarioFrame } from './scenario-visuals.js?v=proposal20261027-r13cardsroom';
-import { environmentIds, createEnvironmentExamples, reduceEnvironmentExample, renderEnvironmentExample } from './proposal-environments.js?v=proposal20261027-r13cardsroom';
-import { PANORAMA_MEDIA } from './panorama/media.js?v=proposal20261027-r13cardsroom';
+import { mountWorkspace, calculateResult } from './workspace.js?v=sales20261027-r1';
+import { modules, scenarios } from './content.js?v=sales20261027-r1';
+import { getLanguage, setLanguage, subscribeLanguage } from './locale.js?v=sales20261027-r1';
+import { proposalContent } from './proposal-content.js?v=sales20261027-r1';
+import { renderProposal, escapeHtml as escape, icon } from './proposal-template.js?v=sales20261027-r1';
+import { createPresentationDemo, reducePresentationDemo, renderPresentationDemo } from './presentation-demo.js?v=sales20261027-r1';
+import { scenarioLibrary } from './scenario-library.js?v=sales20261027-r1';
+import { prefetchScenarioFrame } from './scenario-visuals.js?v=sales20261027-r1';
+import { environmentIds, createEnvironmentExamples, reduceEnvironmentExample, renderEnvironmentExample } from './proposal-environments.js?v=sales20261027-r1';
+import { PANORAMA_MEDIA } from './panorama/media.js?v=sales20261027-r1';
+import { renderClassroomPlan } from './classroom-plan.js?v=sales20261027-r1';
+import { mountSalesHero } from './sales-hero.js?v=sales20261027-r1';
+import { PILOT_CASES, pilotPlan, renderPilotPlan } from './pilot-plan.js?v=sales20261027-r1';
 
 const $ = id => document.getElementById(id);
 const t = (ru, uz) => getLanguage() === 'uz' ? uz : ru;
@@ -17,6 +20,7 @@ let presentationDemo = createPresentationDemo();
 const environmentExamples = createEnvironmentExamples();
 const roomChecks = new Set();
 let deliveryStep=0;
+let heroController, expandedEnvironment=null, pilotCase=PILOT_CASES[0];
 function selectDelivery(index) {
   const copy=[
     [t('Результат: согласован план занятий','Natija: mashg‘ulot rejasi kelishildi'),t('Университет и разработчик согласуют 20 ситуаций, действия курсанта и критерии проверки.','Universitet va ishlab chiquvchi 20 vaziyat, kursant amallari va tekshirish mezonlarini kelishadi.')],
@@ -30,7 +34,29 @@ function selectDelivery(index) {
 }
 function renderEnvironment(id) {
   const target = $('environment-content-'+id);
-  if (target) target.innerHTML = renderEnvironmentExample(id,environmentExamples[id],getLanguage());
+  if (target) target.innerHTML = renderEnvironmentExample(id,environmentExamples[id],getLanguage(),{showNotes:false});
+}
+function renderEnvironmentDialog() {
+  if (!expandedEnvironment) return;
+  $('environment-dialog-title').textContent=content().scenes[expandedEnvironment].title;
+  $('environment-dialog-slot').innerHTML=`<div id="environment-content-${expandedEnvironment}"></div>`;
+  renderEnvironment(expandedEnvironment);
+}
+function openEnvironment(id) {
+  if (!environmentIds.includes(id)) return;
+  if (id==='market') {$('experience').scrollIntoView({block:'start',behavior:'auto'});return;}
+  expandedEnvironment=id;renderEnvironmentDialog();showDialog('environment-dialog');
+}
+function renderRoomDialog() {
+  $('room-dialog-slot').innerHTML=`<div class="classroom-layout">${renderClassroomPlan(getLanguage())}<article id="classroom-detail"></article></div>`;
+  selectZone(view.zone,view.seat);
+}
+function renderPilot() { $('pilot-dialog-slot').innerHTML=renderPilotPlan(pilotCase,getLanguage()); }
+function revealTechnical(id) {
+  for (const dialogId of ['environment-dialog','room-dialog']) if ($(dialogId).open) $(dialogId).close();
+  const target=$(id);
+  for(let parent=target?.parentElement;parent;parent=parent.parentElement) if(parent.tagName==='DETAILS')parent.open=true;
+  requestAnimationFrame(()=>target?.scrollIntoView({block:'start',behavior:'auto'}));
 }
 function renderExchangeExample() {
   if ($('integration-example')) $('integration-example').innerHTML = renderPresentationDemo({component:'exchange',state:presentationDemo,language:getLanguage(),scope:'integration'});
@@ -64,6 +90,7 @@ function syncDialogLock() {
     document.documentElement.style.scrollBehavior = behavior;
   }
   syncPreviewMotion();
+  heroController?.setSuspended('dialog',open);
 }
 
 function showDialog(id) {
@@ -81,7 +108,7 @@ function openModule(id) {
 }
 function panoramaURL(id, embed = false, context = presentationDemo) {
   const visual = context?.caseId?.startsWith(id+'-') ? '&case='+encodeURIComponent(context.caseId)+'&points='+encodeURIComponent(context.points.join(',')) : '';
-  return './panorama/viewer.html?v=proposal20261027-r13cardsroom&scene='+encodeURIComponent(id)+'&theme=light&lang='+getLanguage()+(embed?'&embed=1':'')+visual;
+  return './panorama/viewer.html?v=sales20261027-r1&scene='+encodeURIComponent(id)+'&theme=light&lang='+getLanguage()+(embed?'&embed=1':'')+visual;
 }
 function sceneTitle(id) { return id === 'classroom' ? t('Учебная аудитория','O‘quv auditoriyasi') : content().scenes[id]?.title; }
 function openScene(id, context = presentationDemo) {
@@ -263,18 +290,24 @@ function renderDialogCopy() {
   $('system-dialog-title').textContent = t('Учебная платформа','O‘quv platformasi');
   $('scene-label').textContent = t('Панорамный осмотр / CG-концепция','Panoramali ko‘rinish / CG-konsepsiya');
   $('about-title').textContent = t('О демонстрации','Namoyish haqida');
-  for (const [id, text] of [['system-close',t('К предложению','Taklifga')],['scene-close',t('Закрыть панораму','Panoramani yopish')],['about-close',t('Закрыть','Yopish')]]) {
+  $('room-dialog-title').textContent=t('Класс на десять рабочих мест','O‘nta ish joyli xona');
+  $('pilot-dialog-title').textContent=t('План пробного занятия','Sinov mashg‘uloti rejasi');
+  for (const [id, text] of [['system-close',t('К предложению','Taklifga')],['scene-close',t('Закрыть панораму','Panoramani yopish')],['about-close',t('Закрыть','Yopish')],['environment-close',t('К предложению','Taklifga')],['room-close',t('К предложению','Taklifga')],['pilot-close',t('Закрыть','Yopish')]]) {
     $(id).innerHTML = escape(text) + icon('x'); $(id).setAttribute('aria-label',text);
   }
   $('about-content').innerHTML = `<p>${t('Сайт описывает предлагаемый учебный комплекс, а не готовую систему университета. Состав основан на предоставленных материалах и уточнениях заказчика. Коммерческих условий нет.','Sayt universitetning tayyor tizimini emas, taklif etilayotgan o‘quv kompleksini tasvirlaydi. Tarkib taqdim etilgan materiallar va buyurtmachi aniqliklariga asoslangan. Tijorat shartlari yo‘q.')}</p><p>${t('Панорамы являются CG-иллюстрациями. Реальный шлем и API E-reyting не подключены. Программа работает на вымышленных данных только в вашем браузере; роли не являются настоящей авторизацией.','Panoramalar CG-illyustratsiyalardir. Haqiqiy shlem va E-reyting API ulanmagan. Dastur faqat brauzeringizda xayoliy ma’lumotlar bilan ishlaydi; rollar haqiqiy avtorizatsiya emas.')}</p><p>${t('Сценарии добавляет разработчик, не преподаватель или администратор университета.','Ssenariylarni universitet o‘qituvchisi yoki administratori emas, ishlab chiquvchi qo‘shadi.')}</p><p><a href="https://mgjxu.uz/ru" target="_blank" rel="noopener">${t('Название и эмблема: официальный сайт клиента','Nomi va gerbi: mijozning rasmiy sayti')}</a></p><p>${t('Кнопки, состояния и SVG: предоставленный Cloudplus UI Pack.','Tugmalar, holatlar va SVG: taqdim etilgan Cloudplus UI Pack.')} <a href="./assets/UI-CREDITS.txt" target="_blank" rel="noopener">${t('UI-ресурсы','UI-manbalari')}</a>. <a href="./panorama/CREDITS.txt" target="_blank" rel="noopener">${t('Источники панорам','Panorama manbalari')}</a>.</p>`;
 }
 function render() {
   navigationObserver?.disconnect(); headerObserver?.disconnect(); previewObserver?.disconnect();
+  heroController?.dispose();
   const isSystemOpen = $('system-dialog').open;
   if (!isSystemOpen) systemRoot.remove();
   document.documentElement.lang = getLanguage();
   document.title = t('Учебный VR-комплекс · Предложение для университета','O‘quv VR-kompleksi · Universitet uchun taklif');
   $('proposal').innerHTML = renderProposal(getLanguage());
+  heroController=mountSalesHero($('hero-scene'),getLanguage());
+  heroController?.setSuspended('dialog',Boolean(document.querySelector('dialog[open]')));
+  renderRoomDialog();renderEnvironmentDialog();renderPilot();
   if ($('scene-preview')) {
     $('scene-preview').addEventListener('load',syncPreviewMotion);
     previewObserver = new IntersectionObserver(entries=>{previewVisible=entries[0].isIntersecting;syncPreviewMotion();},{threshold:0.05});
@@ -290,12 +323,12 @@ function render() {
   if (workspace) updateSummary(workspace.getState());
   navigationObserver = new IntersectionObserver(() => {
     const line = document.querySelector('.header').getBoundingClientRect().bottom + 60;
-    const section = [...document.querySelectorAll('main section[id]')].find(item=>{
+    const section = [...document.querySelectorAll('main > section[id]')].find(item=>{
       const rect = item.getBoundingClientRect(); return rect.top <= line && rect.bottom > line;
     });
     if (section) document.querySelectorAll('.navigation a').forEach(a=>a.classList.toggle('active',a.hash==='#'+section.id));
   },{rootMargin:'-140px 0px -55% 0px'});
-  document.querySelectorAll('main section[id]').forEach(section=>navigationObserver.observe(section));
+  document.querySelectorAll('main > section[id]').forEach(section=>navigationObserver.observe(section));
   headerObserver = new ResizeObserver(entries=>{ document.documentElement.style.setProperty('--header-offset',Math.ceil(entries[0].target.getBoundingClientRect().height+30)+'px'); });
   headerObserver.observe(document.querySelector('.header'));
   window.dispatchEvent(new Event('university-ui-ready'));
@@ -316,6 +349,17 @@ document.addEventListener('click', event=>{
   const target = event.target.closest('button,[data-zone],#expand-workspace');
   if (!target || target.disabled) return;
   if (target.dataset.language) setLanguage(target.dataset.language);
+  else if (target.dataset.openEnvironment) openEnvironment(target.dataset.openEnvironment);
+  else if (target.hasAttribute('data-open-room')) {renderRoomDialog();showDialog('room-dialog');}
+  else if (target.id==='open-pilot') {renderPilot();showDialog('pilot-dialog');}
+  else if (target.dataset.pilotCase && PILOT_CASES.includes(target.dataset.pilotCase)) {pilotCase=target.dataset.pilotCase;renderPilot();$('pilot-dialog-slot').querySelector(`[data-pilot-case="${pilotCase}"]`).focus({preventScroll:true});}
+  else if (target.id==='download-pilot') {
+    const plan=pilotPlan(pilotCase,getLanguage());
+    const url=URL.createObjectURL(new Blob(['\uFEFF'+plan.text],{type:'text/plain;charset=utf-8'}));
+    const link=document.createElement('a');link.href=url;link.download=`vr-pilot-${pilotCase}-${getLanguage()}.txt`;
+    document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    $('pilot-download-status').textContent=t('План подготовлен к скачиванию. Заявки и сообщения не отправлялись.','Reja yuklash uchun tayyorlandi. Ariza va xabarlar yuborilmadi.');
+  }
   else if (target.dataset.delivery!==undefined) selectDelivery(Number(target.dataset.delivery));
   else if (target.hasAttribute('data-open-exchange')) {const details=$('integration-example').closest('details');details.open=true;$('integration-example').scrollIntoView({block:'start',behavior:'auto'});}
   else if (target.dataset.roomCheck) {const key=target.dataset.roomCheck;roomChecks.has(key)?roomChecks.delete(key):roomChecks.add(key);selectZone(view.zone,view.seat);$('classroom-detail').querySelector(`[data-room-check="${key}"]`)?.focus({preventScroll:true});}
@@ -325,7 +369,7 @@ document.addEventListener('click', event=>{
       const example=environmentExamples[id];
       presentationDemo={...createPresentationDemo(),scenario:id,caseId:example.caseId,points:[...example.points],seconds:example.points.length*30,log:[{kind:'start',seconds:0},...example.points.map((index,i)=>({kind:'point',index,seconds:(i+1)*30})),{kind:'end',seconds:example.points.length*30}],note:'',confirmed:false,exchange:'draft',packageData:null};
       selectStage(5);selectArchitecture(view.architecture);renderExchangeExample();
-      $('process-content').scrollIntoView({block:'start',behavior:'auto'});return;
+      revealTechnical('process-content');return;
     }
     environmentExamples[id]=reduceEnvironmentExample(environmentExamples[id],{type:action,value:target.dataset.envValue,index:Number(target.dataset.envIndex)});
     renderEnvironment(id);
@@ -334,8 +378,8 @@ document.addEventListener('click', event=>{
   }
   else if (target.dataset.caseId) {presentationDemo=reducePresentationDemo(presentationDemo,{type:'case',value:target.dataset.caseId});renderSceneCases();selectStage(view.stage);selectArchitecture(view.architecture);selectPreview(view.preview);}
   else if (target.dataset.demoAction) handlePresentationAction(target);
-  else if (target.dataset.inlineStage !== undefined) {selectStage(Number(target.dataset.inlineStage));$('process-content').scrollIntoView({block:'start',behavior:'auto'});}
-  else if (target.dataset.inlineComponent) {selectArchitecture(target.dataset.inlineComponent);$('architecture-detail').scrollIntoView({block:'start',behavior:'auto'});}
+  else if (target.dataset.inlineStage !== undefined) {selectStage(Number(target.dataset.inlineStage));revealTechnical('process-content');}
+  else if (target.dataset.inlineComponent) {selectArchitecture(target.dataset.inlineComponent);revealTechnical('architecture-detail');}
   else if (target.dataset.openScene) openScene(target.dataset.openScene,environmentExamples[target.dataset.env] || presentationDemo);
   else if (target.dataset.closeDialog) $(target.dataset.closeDialog).close();
   else if (target.dataset.sceneTab) selectScene(target.dataset.sceneTab);
@@ -368,8 +412,9 @@ document.addEventListener('change',event=>{
 });
 document.querySelectorAll('dialog').forEach(dialog=>{
   dialog.addEventListener('close',()=>{
-    if (dialog.id==='system-dialog') { $('workspace-slot').append(systemRoot); selectPreview(view.preview);if(location.hash==='#demo')history.replaceState(null,'',location.pathname+location.search+(demoReturnHash||'#workspace')); }
+    if (dialog.id==='system-dialog') { $('workspace-slot').append(systemRoot); selectPreview(view.preview);if(location.hash==='#demo')history.replaceState(null,'',location.pathname+location.search+(demoReturnHash||'#workflow')); }
     if (dialog.id==='scene-dialog') $('scene-frame-slot').replaceChildren();
+    if (dialog.id==='environment-dialog') {expandedEnvironment=null;$('environment-dialog-slot').replaceChildren();}
     syncDialogLock();
     const previous = returnFocus.get(dialog); if (previous?.isConnected) previous.focus({preventScroll:true});
   });
@@ -389,7 +434,7 @@ window.addEventListener('message',event=>{
   if (event.origin !== location.origin) return;
   const fullFrame=$('scene-frame-slot').querySelector('iframe');
   if (event.source !== $('scene-preview')?.contentWindow && (!fullFrame || event.source !== fullFrame.contentWindow)) return;
-  if (event.data?.type==='university-panorama:module' && event.data.moduleId===8) { $('scene-dialog').close(); selectArchitecture('teacher'); requestAnimationFrame(()=>$('architecture-detail').scrollIntoView({block:'start',behavior:'auto'})); return; }
+  if (event.data?.type==='university-panorama:module' && event.data.moduleId===8) { $('scene-dialog').close(); selectArchitecture('teacher'); revealTechnical('architecture-detail'); return; }
   if (event.data?.type!=='university-panorama:scene') return;
   const id=event.data.sceneId;
   if (!Object.hasOwn(content().scenes,id) && id!=='classroom') return;
@@ -398,10 +443,10 @@ window.addEventListener('message',event=>{
 });
 const initialAnchor = document.getElementById(location.hash.slice(1));
 if (location.hash==='#demo') openModule(1);
-else if (initialAnchor) requestAnimationFrame(()=>initialAnchor.scrollIntoView({block:'start',behavior:'auto'}));
+else if (initialAnchor) revealTechnical(initialAnchor.id);
 window.addEventListener('hashchange',()=>{if(location.hash==='#demo')openModule(1);else if($('system-dialog').open)$('system-dialog').close();});
 const revealObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{
   if(entry.isIntersecting){entry.target.classList.add('is-revealed');revealObserver.unobserve(entry.target);}
 }),{threshold:.1});
 document.querySelectorAll('.slide').forEach(section=>revealObserver.observe(section));
-window.addEventListener('pagehide',()=>revealObserver.disconnect(),{once:true});
+window.addEventListener('pagehide',()=>{revealObserver.disconnect();heroController?.dispose();},{once:true});

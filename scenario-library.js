@@ -7,7 +7,7 @@
 // Local sidecar only; integration and session-note updates belong to the parent.
 // Remote knowledge was not consulted or updated: this task disallows networking.
 // durationSeconds is a proposed exercise budget, not a pass/fail threshold.
-import { applySimpleScenarioCopy } from './scenario-simple-copy.js?v=proposal20261027-r13cardsroom';
+import { applySimpleScenarioCopy } from './scenario-simple-copy.js?v=sales20261027-r1';
 export const scenarioLibrary = applySimpleScenarioCopy([
   {
     id: "courtyard-01", familyId: "courtyard", sceneId: "courtyard",

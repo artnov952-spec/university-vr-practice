@@ -1,84 +1,92 @@
-import { proposalContent } from './proposal-content.js?v=proposal20261027-r13cardsroom';
-import { PANORAMA_MEDIA } from './panorama/media.js?v=proposal20261027-r13cardsroom';
-import { renderClassroomPlan } from './classroom-plan.js?v=proposal20261027-r13cardsroom';
+import { proposalContent } from './proposal-content.js?v=sales20261027-r1';
+import { PANORAMA_MEDIA } from './panorama/media.js?v=sales20261027-r1';
+import { SCENARIO_FRAMES } from './scenario-visuals.js?v=sales20261027-r1';
+import { scenarioLibrary } from './scenario-library.js?v=sales20261027-r1';
+import { renderClassroomPlan } from './classroom-plan.js?v=sales20261027-r1';
+import { renderTechnicalDetails } from './proposal-technical.js?v=sales20261027-r1';
 export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const icon = name => `<svg class="i" aria-hidden="true"><use href="./assets/ui-icons/sprite.svg#i-${name}"></use></svg>`;
+export const SALES_SECTIONS = ['purpose','experience','environments','benefits','workflow','classroom','next-step'];
 
 export function renderProposal(language) {
   const t = (ru, uz) => language === 'uz' ? uz : ru;
+  const local = item => escapeHtml(language === 'uz' ? item.uzTitle : item.title);
   const data = proposalContent(language);
-  const heading = (n, label, title, text) => `<div class="section-heading"><div><p class="eyebrow">${n} / ${label}</p><h2>${title.replaceAll('E-reyting','<span class="nowrap">E-reyting</span>')}</h2></div><p>${text}</p></div>`;
-  const languageButton = value => `<button type="button" data-language="${value}" aria-pressed="${language === value}" aria-label="${value === 'ru' ? t('Русский язык','Rus tili') : t('Узбекский язык',"O'zbek tili")}">${value.toUpperCase()}</button>`;
+  const nav = [t('О системе','Tizim'),t('Попробовать','Sinab ko‘rish'),t('Среды','Muhitlar'),t('Польза','Foyda'),t('Занятие','Mashg‘ulot'),t('Класс','Xona'),t('Пробное занятие','Sinov mashg‘uloti')];
+  const heading = (number, label, title, body = '') => `<div class="sales-section-heading"><div><p class="eyebrow">${number} / ${label}</p><h2>${title}</h2></div>${body ? `<p>${body}</p>` : ''}</div>`;
+  const heroCase = scenarioLibrary.find(item => item.id === 'entrance-01');
+  const heroFrame = SCENARIO_FRAMES[heroCase.id][0];
+  const benefits = [
+    ['shield-check',t('Сложная ситуация. Без выезда в город.','Murakkab vaziyat. Shaharga chiqmasdan.'),t('Курсант учится замечать опасность и помогать людям в учебной среде.','Kursant o‘quv muhitida xavfni payqash va odamlarga yordam berishni o‘rganadi.')],
+    ['history',t('Повторить. И сделать лучше.','Takrorlash. Yaxshiroq bajarish.'),t('Одно упражнение можно пройти снова и сравнить действия в разных попытках.','Bir mashqni qayta bajarish va urinishlardagi harakatlarni solishtirish mumkin.')],
+    ['check-check',t('Оценка по действиям, не по впечатлению.','Baho taassurotga emas, harakatlarga.'),t('Общие критерии для группы. Видны пропуски и порядок действий; итог проверяет преподаватель.','Guruh uchun umumiy mezonlar. O‘tkazilgan nuqtalar va tartib ko‘rinadi; yakunni o‘qituvchi tekshiradi.')],
+    ['arrow-up-down',t('Результат остается в учебном учете.','Natija o‘quv hisobida qoladi.'),t('В проекте предусмотрена передача подтвержденных результатов в E-reyting.','Loyihada tasdiqlangan natijalarni E-reytingga uzatish ko‘zda tutilgan.')]
+  ];
   return `
   <a class="skip-link" href="#purpose">${t('К предложению','Taklifga o‘tish')}</a>
-  <header class="header wrap">
+  <header class="header wrap sales-header">
     <div class="header-top">
-      <a class="identity" href="#purpose"><img src="./assets/university-logo.png" width="56" height="56" alt="${t('Эмблема с официального сайта университета','Universitet rasmiy saytidagi gerb')}"><span>${t('Университет общественной безопасности','Jamoat xavfsizligi universiteti')}<small>${t('Республика Узбекистан','O‘zbekiston Respublikasi')}</small></span></a>
-      <div class="header-actions"><div class="language-switch" role="group" aria-label="${t('Язык предложения и программы','Taklif va dastur tili')}">${languageButton('ru')}${languageButton('uz')}</div><a class="btn btn--primary demo-entry" href="#demo" id="expand-workspace">${icon('monitor')}${t('Демо программы','Dastur demosi')}${icon('arrow-up-right')}</a></div>
+      <a class="identity" href="#purpose"><img src="./assets/university-logo.png" width="44" height="44" alt="${t('Эмблема университета','Universitet gerbi')}"><span>${t('Университет общественной безопасности','Jamoat xavfsizligi universiteti')}<small>${t('Республика Узбекистан','O‘zbekiston Respublikasi')}</small></span></a>
+      <div class="header-actions"><div class="language-switch" role="group" aria-label="${t('Язык предложения и программы','Taklif va dastur tili')}">${['ru','uz'].map(value => `<button type="button" data-language="${value}" aria-pressed="${value===language}" aria-label="${value==='ru'?t('Русский язык','Rus tili'):t('Узбекский язык','O‘zbek tili')}">${value.toUpperCase()}</button>`).join('')}</div><a class="btn btn--primary demo-entry" id="expand-workspace" href="#demo">${icon('monitor')}${t('Демо программы','Dastur demosi')}</a></div>
     </div>
-    <nav class="navigation" aria-label="${t('Разделы предложения','Taklif bo‘limlari')}">${data.nav.map(item => `<a href="#${item.id}">${item.title}</a>`).join('')}</nav>
+    <nav class="navigation" aria-label="${t('Разделы предложения','Taklif bo‘limlari')}">${SALES_SECTIONS.map((id,index)=>`<a href="#${id}">${nav[index]}</a>`).join('')}</nav>
   </header>
-  <main>
-    <section class="hero slide wrap" id="purpose">
-      <div class="hero-copy"><p class="eyebrow">CLOUDPLUS / ${t('ПРЕДЛОЖЕНИЕ ПО РАЗРАБОТКЕ','ISHLAB CHIQISH TAKLIFI')}</p><h1>${t('Учебный комплекс','O‘quv kompleksi')}<span>${t('для практической подготовки','amaliy tayyorgarlik uchun')}</span></h1><p class="lead">${t('Практика в четырех средах Узбекистана. Задания, наблюдение, разбор и передача результатов в <span class="nowrap">E-reyting</span>.','O‘zbekistonning to‘rtta muhitida amaliyot. Topshiriq, kuzatish, tahlil va natijalarni <span class="nowrap">E-reyting</span>ga uzatish.')}</p><div class="hero-actions"><a class="btn btn--primary btn--lg" href="#workspace">${t('Как работает комплекс','Kompleks qanday ishlaydi')} ${icon('arrow-right')}</a><a class="text-button" href="#environment-courtyard">${t('Осмотреть учебные среды','O‘quv muhitlarini ko‘rish')} ${icon('eye')}</a></div><div class="hero-facts"><a href="#workspace"><b>14</b><span>${t('рабочих модулей','ishchi modul')}</span></a><a href="#environment-courtyard"><b>4</b><span>${t('учебные среды','o‘quv muhiti')}</span></a><a href="#roles"><b>3</b><span>${t('роли пользователей','foydalanuvchi roli')}</span></a></div></div>
-      <div class="hero-mosaic" aria-label="${t('Четыре учебные среды','To‘rtta o‘quv muhiti')}">${Object.entries(data.scenes).map(([id,item],i)=>`<a href="#environment-${id}" class="mosaic-tile"><img src="${PANORAMA_MEDIA[id].src}" width="1774" height="887" alt="" ${i?'loading="lazy"':'fetchpriority="high"'}><span><small>0${i+1}</small><strong>${item.title}</strong>${icon('arrow-up-right')}</span></a>`).join('')}</div>
-      <div class="hero-benefits">${[
-        ['layout-grid',t('Повторяемые упражнения','Takrorlanadigan mashqlar'),t('Одинаковая версия задания для группы.','Guruh uchun bir xil topshiriq versiyasi.')],
-        ['history',t('История действий','Harakatlar tarixi'),t('События и контрольные точки каждой попытки.','Har bir urinishning hodisalari va nazorat nuqtalari.')],
-        ['check-check',t('Проверенный результат','Tekshirilgan natija'),t('Разбор и подтверждение преподавателем.','O‘qituvchi tahlili va tasdig‘i.')]
-      ].map(item=>`<article>${icon(item[0])}<div><h3>${item[1]}</h3><p>${item[2]}</p></div></article>`).join('')}</div>
+  <main class="sales-main">
+    <section class="sales-hero" id="purpose" aria-labelledby="sales-title">
+      <div class="sales-hero-scene" id="hero-scene">
+        <div class="hero-film-images"><img data-hero-layer="0" class="hero-film-frame is-active" src="${heroFrame.src}" width="1774" height="887" alt="${t('Учебная сцена: жительница у электрощита в подъезде','O‘quv sahnasi: kirish yo‘lagida elektr shkafi yonidagi ayol')}" fetchpriority="high"><img data-hero-layer="1" class="hero-film-frame" src="${heroFrame.src}" width="1774" height="887" alt="" aria-hidden="true"></div>
+        <div class="hero-viewfinder" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <div class="hero-scene-tag">${icon('eye')}<span>${t('Взгляд курсанта','Kursant nigohi')}</span><span>VR / ${t('Подъезд','Kirish yo‘lagi')}</span></div>
+        <div class="hero-decision">
+          <div class="hero-decision-heading"><span id="hero-film-phase">${t('Учебная ситуация','O‘quv vaziyati')}</span><span id="hero-film-count">0 / 5</span></div>
+          <strong id="hero-film-caption">${local(heroCase)}</strong>
+          <p id="hero-film-detail">${t('Увидеть. Выбрать действие. Разобрать результат.','Ko‘rish. Amalni tanlash. Natijani tahlil qilish.')}</p>
+          <div class="hero-film-progress" aria-hidden="true"><span id="hero-film-progress"></span></div>
+          <button id="hero-play" type="button" aria-pressed="false">${icon('arrow-right')}<span>${t('Смотреть 10 секунд','10 soniya ko‘rish')}</span></button>
+          <span id="hero-film-status" class="sr-only" role="status"></span>
+        </div>
+      </div>
+      <div class="sales-hero-copy">
+        <p class="eyebrow">CLOUDPLUS / ${t('УЧЕБНЫЙ VR-КОМПЛЕКС','O‘QUV VR-KOMPLEKSI')}</p>
+        <h1 id="sales-title">${t('Сначала в VR.<br><span>Потом на службе.</span>','Avval VR’da.<br><span>Keyin xizmatda.</span>')}</h1>
+        <p class="lead">${t('Курсант отрабатывает ситуации улиц Узбекистана до встречи с ними в жизни. Преподаватель видит действия, пропуски и ошибки.','Kursant O‘zbekiston ko‘chalaridagi vaziyatlarni hayotda uchratishdan oldin mashq qiladi. O‘qituvchi harakatlar, o‘tkazilgan nuqtalar va xatolarni ko‘radi.')}</p>
+        <a class="btn btn--primary btn--lg" href="#experience">${t('Попробовать ситуацию','Vaziyatni sinab ko‘rish')}${icon('arrow-right')}</a>
+        <span class="sales-hero-signature">${t('Для практической подготовки курсантов университета','Universitet kursantlarining amaliy tayyorgarligi uchun')}</span>
+      </div>
     </section>
-    <section class="slide wrap" id="workspace">
-      ${heading('02',t('О программе','Dastur haqida'),t('Подготовить. Провести. Разобрать.','Tayyorlash. O‘tkazish. Tahlil qilish.'),t('Преподаватель выбирает задание, наблюдает за практикой и проверяет результат. Курсант, сценарий и события занятия связаны между собой.','O‘qituvchi topshiriqni tanlaydi, amaliyotni kuzatadi va natijani tekshiradi. Kursant, ssenariy va mashg‘ulot hodisalari bir-biri bilan bog‘langan.'))}
-      <div id="process" class="program-workflow">            <p class="interaction-hint">${icon('info')}${t('У каждого этапа свой интерактивный экран','Har bir bosqichning o‘z interaktiv ekrani bor')}</p>
-      <div class="process-layout"><div class="process-steps" role="tablist" aria-label="${t('Этапы занятия','Mashg‘ulot bosqichlari')}" aria-orientation="vertical"></div><article id="process-content" role="tabpanel"></article></div></div>
-      <details class="module-details assessment-details"><summary>${t('Как оцениваются действия','Harakatlar qanday baholanadi')}${icon('plus')}</summary><div class="program-assessment" id="assessment">            <div class="assessment-layout"><div class="assessment-principles">${[
-        [t('Критерии упражнения','Mashq mezonlari'),t('Контрольные точки, последовательность и вес показателей.','Nazorat nuqtalari, ketma-ketlik va ko‘rsatkichlar ulushi.')],
-        [t('События попытки','Urinish hodisalari'),t('Выполненные действия, время и пропуски доступны для разбора.','Bajarilgan harakatlar, vaqt va o‘tkazib yuborilgan nuqtalar tahlil uchun mavjud.')],
-        [t('Решение преподавателя','O‘qituvchi qarori'),t('Комментарий, подтверждение или повторная подготовка.','Izoh, tasdiqlash yoki qayta tayyorgarlik.')]
-      ].map(([title,text],i)=>`<article><span class="step-dot">0${i+1}</span><div><h3>${title}</h3><p>${text}</p></div></article>`).join('')}<button class="btn btn--soft" data-inline-stage="5">${t('Попробовать расчет','Hisobni sinab ko‘rish')} ${icon('arrow-right')}</button></div><div class="assessment-live"><p class="eyebrow">${t('Пример карточки / учебные данные','Karta namunasi / o‘quv ma’lumotlari')}</p><div id="assessment-summary"></div><a class="text-button" href="#integration">${t('Подготовка результата для E-reyting','Natijani E-reyting uchun tayyorlash')} ${icon('arrow-right')}</a></div></div></div></details>
-      <details class="module-details"><summary>${t('Состав программы: 14 модулей','Dastur tarkibi: 14 modul')}${icon('plus')}</summary><div id="module-overview" class="module-overview"></div></details>
-
-      <div id="workspace-slot" hidden></div>
-
-      <div class="role-block" id="roles"><p class="eyebrow">${t('Ответственность участников','Ishtirokchilar mas’uliyati')}</p><div class="role-tabs" role="tablist" aria-label="${t('Роли пользователей','Foydalanuvchi rollari')}">${Object.entries(data.roles).map(([id,item],i)=>`<button id="role-${id}" role="tab" aria-selected="${i===0}" aria-controls="role-panel" data-role="${id}">${item[0]}</button>`).join('')}</div><article class="role-panel" id="role-panel" role="tabpanel" aria-labelledby="role-teacher"></article></div>
-
+    <div class="sales-facts wrap" aria-label="${t('Состав предложения','Taklif tarkibi')}">
+      <a href="#environments"><b>20</b><span>${t('учебных ситуаций','o‘quv vaziyati')}<small>${t('Махалля, подъезд, дорога и базар','Mahalla, kirish yo‘lagi, yo‘l va bozor')}</small></span></a>
+      <a href="#classroom"><b>10</b><span>${t('VR-мест в проекте класса','xona loyihasida VR-joy')}<small>${t('У каждого курсанта свой комплект','Har bir kursantning o‘z to‘plami')}</small></span></a>
+      <a href="#workflow"><b class="fact-word">E-reyting</b><span>${t('результаты в учебном учете','natijalar o‘quv hisobida')}<small>${t('Обмен предусмотрен проектом','Almashuv loyihada ko‘zda tutilgan')}</small></span></a>
+    </div>
+    <section class="sales-section wrap" id="experience">
+      ${heading('01',t('ПОПРОБУЙТЕ САМИ','O‘ZINGIZ SINAB KO‘RING'),t('На базаре нужна помощь.<br><span>Что вы сделаете?</span>','Bozorda yordam kerak.<br><span>Nima qilasiz?</span>'),t('Выберите ситуацию и пройдите пять действий. Сцена меняется вместе с вашими решениями.','Vaziyatni tanlang va beshta amalni bajaring. Qarorlaringiz bilan sahna ham o‘zgaradi.'))}
+      <div id="environment-content-market" class="sales-live-example"></div>
     </section>
-    ${Object.keys(data.scenes).map((id,i)=>`<section class="slide wrap environment-slide ${i%2?'tinted':''}" id="environment-${id}" data-environment="${id}"><div class="environment-heading"><div><p class="eyebrow">0${i+3} / ${t('ПРОСТРАНСТВО ДЛЯ ПРАКТИКИ','AMALIYOT MUHITI')} / 0${i+1}</p><h2>${data.scenes[id].title}</h2><p>${data.scenes[id].description}</p></div><span class="environment-count">5 ${t('ситуаций','vaziyat')} · 5 ${t('действий','harakat')}</span></div><div id="environment-content-${id}"></div></section>`).join('')}
-    <section class="slide wrap tinted" id="integration">
-      ${heading('07',t('Интеграция','Integratsiya'),t('VR-практика в учебном учете E-reyting','VR-amaliyot E-reyting o‘quv hisobida'),t('Подтвержденный результат связывается с курсантом, группой, дисциплиной и версией упражнения. Преподаватель видит, что готово к передаче и какой ответ получен.','Tasdiqlangan natija kursant, guruh, fan va mashq versiyasi bilan bog‘lanadi. Tizim ma’lumotlar tarkibini tekshiradi va qayta ishlash holatini saqlaydi.'))}
-      <div class="exchange-flow">${[
-        ['users',t('Связать данные','Ma’lumotlarni bog‘lash'),t('Курсант, группа, дисциплина','Kursant, guruh, fan')],
-        ['check-check',t('Проверка','Tekshirish'),t('Подтверждение и обязательные поля','Tasdiq va majburiy maydonlar')],
-        ['arrow-up-down',t('Пакет результатов','Natijalar paketi'),t('Состав и способ передачи','Tarkib va uzatish usuli')],
-        ['history',t('Получить ответ','Javob olish'),t('Ответ, ошибка, повтор','Javob, xato, qayta urinish')]
-      ].map(([ico,title,text],i)=>`<article>${icon(ico)}<span class="exchange-number">0${i+1}</span><h3>${title}</h3><p>${text}</p></article>`).join('')}</div>
-      <div class="exchange-panel"><div><p class="eyebrow">${t('Способ передачи','Uzatish usuli')}</p><div class="exchange-tabs" role="tablist" aria-label="${t('Способ обмена','Almashuv usuli')}"><button id="exchange-api" role="tab" aria-selected="true" aria-controls="exchange-detail" data-exchange="api">API</button><button id="exchange-file" role="tab" aria-selected="false" aria-controls="exchange-detail" data-exchange="file">Excel / CSV</button></div><article id="exchange-detail" role="tabpanel" aria-labelledby="exchange-api"></article><button class="btn btn--primary" data-open-exchange>${t('Проверить пример пакета','Paket namunasini tekshirish')} ${icon('arrow-right')}</button></div><div class="exchange-record"><h3>${t('Какие данные передаем','Qanday ma’lumot uzatiladi')}</h3><dl>${[
-        [t('Участник','Ishtirokchi'),t('Код курсанта и учебная группа','Kursant kodi va o‘quv guruhi')],
-        [t('Учебная связь','O‘quv bog‘lanishi'),t('Дисциплина и упражнение','Fan va mashq')],
-        [t('Основание','Asos'),t('Версия сценария и номер попытки','Ssenariy versiyasi va urinish raqami')],
-        [t('Результат','Natija'),t('Баллы, дата и подтверждение преподавателя','Ball, sana va o‘qituvchi tasdig‘i')],
-        [t('Контроль','Nazorat'),t('Идентификатор пакета и статус обработки','Paket identifikatori va qayta ishlash holati')]
-      ].map(([a,b])=>`<div><dt>${a}</dt><dd>${b}</dd></div>`).join('')}</dl></div></div>
-      <div class="exchange-checks"><div>${icon('shield-check')}<strong>${t('Непроверенные результаты не передаются','Tekshirilmagan natijalar uzatilmaydi')}</strong></div><div>${icon('history')}<strong>${t('Повторы и ошибки видны в журнале','Takrorlar va xatolar jurnalda ko‘rinadi')}</strong></div></div>
-      <p class="note">${t('В демонстрации работают локальные сопоставления, проверка и подготовка пакета. Реальный API не подключен; формат и доступ согласуются с владельцем E-reyting.','Namoyishda mahalliy moslashtirish, tekshirish va paket tayyorlash ishlaydi. Haqiqiy API ulanmagan; format va kirish E-reyting egasi bilan kelishiladi.')}</p>
-      <details class="module-details"><summary>${t('Попробовать подготовку результата для E-reyting','E-reyting uchun natija tayyorlashni sinash')}${icon('plus')}</summary><div class="program-assessment" id="integration-example"></div></details>
+    <section class="sales-section wrap" id="environments">
+      ${heading('02',t('СРЕДЫ И СИТУАЦИИ','MUHITLAR VA VAZIYATLAR'),t('Четыре пространства.<br><span>Двадцать ситуаций из жизни.</span>','To‘rtta makon.<br><span>Hayotdan yigirmata vaziyat.</span>'))}
+      <div class="sales-environment-grid">${Object.entries(data.scenes).map(([id,item],index)=>`<article class="sales-environment"><div class="sales-environment-image"><img src="${PANORAMA_MEDIA[id].src}" width="1774" height="887" alt="" loading="lazy"><span>0${index+1} / 5 ${t('ситуаций','vaziyat')}</span></div><div class="sales-environment-copy"><h3>${item.title}</h3><ul>${scenarioLibrary.filter(x=>x.sceneId===id).slice(0,3).map(x=>`<li>${local(x)}</li>`).join('')}</ul><button type="button" class="text-button" data-open-environment="${id}" aria-haspopup="${id==='market'?'false':'dialog'}">${id==='market'?t('Попробовать выше','Yuqorida sinash'):t('Открыть ситуации','Vaziyatlarni ochish')}${icon('arrow-up-right')}</button></div></article>`).join('')}</div>
     </section>
-    <section class="slide wrap" id="classroom">
-      ${heading('08',t('Аудитория','Auditoriya'),t('VR на каждом рабочем месте','Har bir ish joyida VR'),t('Рабочие места курсантов, компьютер преподавателя и общий экран. Нажмите на элемент схемы, чтобы посмотреть его роль в занятии.','Kursantlar ish joylari, o‘qituvchi kompyuteri va umumiy ekran. Mashg‘ulotdagi vazifasini ko‘rish uchun sxema elementini bosing.'))}
-      <div class="classroom-layout">${renderClassroomPlan(language)}<article class="classroom-detail" id="classroom-detail" aria-live="polite"></article></div>
-      <p class="note">${t('Расстановка и число одновременно работающих комплектов уточняются после обмера аудитории и проверки оборудования.','Joylashuv va bir vaqtda ishlaydigan to‘plamlar soni xona o‘lchanib, jihozlar tekshirilgandan keyin aniqlanadi.')}</p>
+    <section class="sales-section sales-benefits" id="benefits"><div class="wrap">
+      ${heading('03',t('ДЛЯ УНИВЕРСИТЕТА','UNIVERSITET UCHUN'),t('Больше практики.<br><span>Понятнее результат.</span>','Ko‘proq amaliyot.<br><span>Aniqroq natija.</span>'))}
+      <div class="sales-benefit-grid">${benefits.map(([ico,title,text],index)=>`<article><span class="benefit-number">0${index+1}</span>${icon(ico)}<h3>${title}</h3><p>${text}</p></article>`).join('')}</div>
+      <div class="sales-evidence"><div><p class="eyebrow">${t('ПОДХОД УЖЕ ПРИМЕНЯЮТ','USUL AMALDA QO‘LLANMOQDA')}</p><h3>${t('VR используют в подготовке полиции.','VR politsiya tayyorgarligida ishlatiladi.')}</h3></div><a href="https://www.dyfed-powys.police.uk/foi-ai/dyfed-powys-police/disclosure-2025/november/virtual-realitymixed-reality-10512025/" target="_blank" rel="noopener"><b>20 ${t('шлемов','shlem')}</b><span>Dyfed-Powys Police / UK<small>${t('VR и 360° в начальной подготовке. Официальный ответ от 27.10.2025.','Boshlang‘ich tayyorgarlikda VR va 360°. 27.10.2025 kungi rasmiy javob.')}</small></span>${icon('arrow-up-right')}</a><a href="https://fpi.omb.gov/program/16.054.html" target="_blank" rel="noopener"><b>USA / DOJ</b><span>${t('Сценарное VR-обучение деэскалации','Vaziyatli VR deeskalatsiya ta’limi')}<small>${t('Программа 16.054 в федеральном реестре.','Federal reyestrdagi 16.054 dasturi.')}</small></span>${icon('arrow-up-right')}</a></div>
+    </div></section>
+    <section class="sales-section wrap" id="workflow">
+      ${heading('04',t('КАК ПРОХОДИТ ЗАНЯТИЕ','MASHG‘ULOT QANDAY O‘TADI'),t('Назначить. Пройти.<br><span>Сохранить результат.</span>','Tayinlash. Bajarish.<br><span>Natijani saqlash.</span>'))}
+      <div class="sales-workflow">${[
+        ['users',t('Преподаватель назначил','O‘qituvchi tayinladi'),t('Выбрал группу, ситуацию и критерии.','Guruh, vaziyat va mezonlarni tanladi.')],
+        ['eye',t('Курсант прошел в VR','Kursant VR’da bajardi'),t('Выполнил задание. Система сохранила действия и ошибки.','Topshiriqni bajardi. Tizim harakat va xatolarni saqladi.')],
+        ['check-check',t('Результат в E-reyting','Natija E-reytingda'),t('После проверки преподавателем и подключения обмена.','O‘qituvchi tekshiruvi va almashuv ulangandan so‘ng.')]
+      ].map(([ico,title,text],index)=>`<article><div><span>0${index+1}</span>${icon(ico)}</div><h3>${title}</h3><p>${text}</p></article>`).join('')}</div>
+      <details class="sales-technical" id="technical-details"><summary>${t('Подробнее: программа, оценивание и обмен','Batafsil: dastur, baholash va almashuv')}${icon('plus')}</summary>${renderTechnicalDetails(language)}</details>
     </section>
-    <section class="slide wrap tinted" id="architecture">
-      ${heading('09',t('Состав и внедрение','Tarkib va joriy etish'),t('Единый учебный комплекс','Yagona o‘quv kompleksi'),t('Выберите компонент: ниже откроется его экран с действиями. Примеры показывают, как связаны преподаватель, учебные данные, практика и результаты.','Komponentni tanlang: pastda uning amallar mavjud ekrani ochiladi. Namunalar o‘qituvchi, o‘quv ma’lumotlari, amaliyot va natijalar qanday bog‘langanini ko‘rsatadi.'))}
-      <div class="architecture-map">${Object.entries(data.architecture).map(([id,item])=>`<button data-arch="${id}" aria-pressed="${id==='teacher'}">${icon(item[4])}<strong>${item[0]}</strong><small>${item[1]}</small></button>`).join('')}</div><article id="architecture-detail"></article>
-      <div class="delivery-steps" role="group" aria-label="${t('Этапы внедрения','Joriy etish bosqichlari')}">${[
-        [t('Методика','Metodika'),t('Учебные цели, сценарии, роли и критерии с ответственными от университета.','Universitet mas’ullari bilan o‘quv maqsadlari, ssenariylar, rollar va mezonlar.')],
-        [t('Проверка на оборудовании','Jihozlarda tekshirish'),t('Одна сцена, оценка графики, производительности и понятности занятия.','Bitta sahna, grafika, unumdorlik va mashg‘ulot tushunarliligini baholash.')],
-        [t('Разработка комплекса','Kompleksni ishlab chiqish'),t('Программа преподавателя, VR-клиент, история и согласованный обмен.','O‘qituvchi dasturi, VR-mijoz, tarix va kelishilgan almashuv.')],
-        [t('Испытания и обучение','Sinov va o‘qitish'),t('Проверка сценариев, подготовка аудитории и обучение пользователей.','Ssenariylarni tekshirish, auditoriyani tayyorlash va foydalanuvchilarni o‘qitish.')]
-      ].map(([title,text],i)=>`<button type="button" class="delivery-step-button" data-delivery="${i}" aria-pressed="${i===0}"><span>0${i+1}</span><h3>${title}</h3><p>${text}</p></button>`).join('')}</div><div class="delivery-output" id="delivery-output" aria-live="polite"></div>
+    <section class="sales-section wrap" id="classroom">
+      ${heading('05',t('КЛАСС И ВНЕДРЕНИЕ','XONA VA JORIY ETISH'),t('Рабочее место.<br><span>Свой VR-комплект.</span>','Ish joyi.<br><span>O‘z VR-to‘plami.</span>'),t('Десять мест, преподаватель и общий экран. Без отдельной площадки для перемещения.','O‘nta joy, o‘qituvchi va umumiy ekran. Harakatlanish uchun alohida maydonsiz.'))}
+      <div class="sales-room-grid"><div class="sales-room-photo"><img src="${PANORAMA_MEDIA.classroom.src}" width="1774" height="887" alt="${t('CG-класс на десять рабочих мест с VR','O‘nta VR ish joyli CG-xona')}" loading="lazy"><button type="button" class="btn btn--soft" data-open-scene="classroom">${icon('eye')}${t('Панорама аудитории','Auditoriya panoramasi')}</button></div><div class="sales-room-plan">${renderClassroomPlan(language,{interactive:false})}<button type="button" class="text-button" data-open-room aria-haspopup="dialog">${t('Развернуть схему','Sxemani kengaytirish')}${icon('arrow-up-right')}</button></div></div>
+      <div class="sales-rollout-heading"><h3>${t('Четыре шага до учебного класса','O‘quv xonasigacha to‘rtta qadam')}</h3></div><div class="delivery-steps sales-rollout" role="group" aria-label="${t('Этапы внедрения','Joriy etish bosqichlari')}">${[t('Согласовать ситуации','Vaziyatlarni kelishish'),t('Проверить на оборудовании','Jihozda tekshirish'),t('Собрать комплекс','Kompleksni yig‘ish'),t('Обучить преподавателей','O‘qituvchilarni o‘qitish')].map((title,index)=>`<button type="button" class="delivery-step-button" data-delivery="${index}" aria-pressed="${index===0}"><span>0${index+1}</span><h3>${title}</h3></button>`).join('')}</div><div class="delivery-output" id="delivery-output" aria-live="polite"></div>
     </section>
+    <section class="sales-section sales-next" id="next-step"><div class="wrap sales-next-layout"><div><p class="eyebrow">${t('СЛЕДУЮЩИЙ ШАГ','KEYINGI QADAM')}</p><h2>${t('Начнем с одной группы.<br><span>И одной реальной задачи.</span>','Bitta guruhdan boshlaymiz.<br><span>Va bitta haqiqiy vazifadan.</span>')}</h2><p>${t('Выберем ситуацию, покажем путь курсанта и разберем результат вместе с преподавателем.','Vaziyatni tanlaymiz, kursant yo‘lini ko‘rsatamiz va natijani o‘qituvchi bilan tahlil qilamiz.')}</p></div><div class="sales-next-action"><button type="button" id="open-pilot" class="btn btn--lg" aria-haspopup="dialog">${t('Выбрать пробное занятие','Sinov mashg‘ulotini tanlash')}${icon('arrow-right')}</button><span>${t('Сценарий, группа и план показа. Без лишних шагов.','Ssenariy, guruh va namoyish rejasi. Ortiqcha qadamlarsiz.')}</span></div></div></section>
   </main>
-  <footer class="footer wrap"><span><b>CLOUDPLUS</b> / ${t('Учебный VR-комплекс','O‘quv VR-kompleksi')}</span><button class="text-button" id="open-about">${t('О демонстрации и источниках','Namoyish va manbalar haqida')}</button></footer>`;
+  <footer class="sales-footer wrap"><div><b>CLOUDPLUS</b><button class="text-button" id="open-about">${t('О демонстрации и источниках','Namoyish va manbalar haqida')}</button></div><p>${t('Интерактивная концепция на учебных данных. CG-сцены и баллы показаны на примере. Класс рассчитан в проекте на 10 мест; реальная одновременная работа и обмен с E-reyting требуют разработки, подключения и проверки на оборудовании.','O‘quv ma’lumotlaridagi interaktiv konsepsiya. CG-sahnalar va ballar namuna sifatida ko‘rsatilgan. Xona loyihasi 10 joyli; haqiqiy bir vaqtda ishlash va E-reyting almashuvi ishlab chiqish, ulash va jihozda tekshirishni talab qiladi.')}</p></footer>`;
 }

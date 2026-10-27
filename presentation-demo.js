@@ -1,7 +1,7 @@
-import { escapeHtml as escape, icon } from './proposal-template.js?v=proposal20261027-r13cardsroom';
-import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r13cardsroom';
-import { PANORAMA_MEDIA } from './panorama/media.js?v=proposal20261027-r13cardsroom';
-import { renderScenarioVisual, scenarioVisualState } from './scenario-visuals.js?v=proposal20261027-r13cardsroom';
+import { escapeHtml as escape, icon } from './proposal-template.js?v=sales20261027-r1';
+import { scenarioLibrary } from './scenario-library.js?v=sales20261027-r1';
+import { PANORAMA_MEDIA } from './panorama/media.js?v=sales20261027-r1';
+import { renderScenarioVisual, scenarioVisualState } from './scenario-visuals.js?v=sales20261027-r1';
 
 const SCENES = ['courtyard', 'entrance', 'traffic', 'market'];
 const REGISTRIES = ['groups', 'scenarios', 'attempts'];
