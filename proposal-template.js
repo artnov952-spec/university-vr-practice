@@ -1,5 +1,5 @@
-import { proposalContent } from './proposal-content.js?v=proposal20261027-r11initial';
-import { PANORAMA_MEDIA } from './panorama/media.js?v=proposal20261027-r11initial';
+import { proposalContent } from './proposal-content.js?v=proposal20261027-r12panorama';
+import { PANORAMA_MEDIA } from './panorama/media.js?v=proposal20261027-r12panorama';
 export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const icon = name => `<svg class="i" aria-hidden="true"><use href="./assets/ui-icons/sprite.svg#i-${name}"></use></svg>`;
 

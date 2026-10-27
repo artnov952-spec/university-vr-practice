@@ -9,6 +9,7 @@ import { renderProposal } from '../proposal-template.js';
 import { createPresentationDemo, renderPresentationDemo } from '../presentation-demo.js';
 import './check-scenario-visuals.mjs';
 import './check-proposal-pages.mjs';
+import './check-panorama-only.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const files = [];

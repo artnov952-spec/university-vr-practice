@@ -1,12 +1,12 @@
-import { mountWorkspace, calculateResult } from './workspace.js?v=proposal20261027-r11initial';
-import { modules, scenarios } from './content.js?v=proposal20261027-r11initial';
-import { getLanguage, setLanguage, subscribeLanguage } from './locale.js?v=proposal20261027-r11initial';
-import { proposalContent } from './proposal-content.js?v=proposal20261027-r11initial';
-import { renderProposal, escapeHtml as escape, icon } from './proposal-template.js?v=proposal20261027-r11initial';
-import { createPresentationDemo, reducePresentationDemo, renderPresentationDemo } from './presentation-demo.js?v=proposal20261027-r11initial';
-import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r11initial';
-import { prefetchScenarioFrame } from './scenario-visuals.js?v=proposal20261027-r11initial';
-import { environmentIds, createEnvironmentExamples, reduceEnvironmentExample, renderEnvironmentExample } from './proposal-environments.js?v=proposal20261027-r11initial';
+import { mountWorkspace, calculateResult } from './workspace.js?v=proposal20261027-r12panorama';
+import { modules, scenarios } from './content.js?v=proposal20261027-r12panorama';
+import { getLanguage, setLanguage, subscribeLanguage } from './locale.js?v=proposal20261027-r12panorama';
+import { proposalContent } from './proposal-content.js?v=proposal20261027-r12panorama';
+import { renderProposal, escapeHtml as escape, icon } from './proposal-template.js?v=proposal20261027-r12panorama';
+import { createPresentationDemo, reducePresentationDemo, renderPresentationDemo } from './presentation-demo.js?v=proposal20261027-r12panorama';
+import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r12panorama';
+import { prefetchScenarioFrame } from './scenario-visuals.js?v=proposal20261027-r12panorama';
+import { environmentIds, createEnvironmentExamples, reduceEnvironmentExample, renderEnvironmentExample } from './proposal-environments.js?v=proposal20261027-r12panorama';
 
 const $ = id => document.getElementById(id);
 const t = (ru, uz) => getLanguage() === 'uz' ? uz : ru;
@@ -80,7 +80,7 @@ function openModule(id) {
 }
 function panoramaURL(id, embed = false, context = presentationDemo) {
   const visual = context?.caseId?.startsWith(id+'-') ? '&case='+encodeURIComponent(context.caseId)+'&points='+encodeURIComponent(context.points.join(',')) : '';
-  return './panorama/viewer.html?v=proposal20261027-r11initial&scene='+encodeURIComponent(id)+'&theme=light&lang='+getLanguage()+(embed?'&embed=1':'')+visual;
+  return './panorama/viewer.html?v=proposal20261027-r12panorama&scene='+encodeURIComponent(id)+'&theme=light&lang='+getLanguage()+(embed?'&embed=1':'')+visual;
 }
 function sceneTitle(id) { return id === 'classroom' ? t('Учебная аудитория','O‘quv auditoriyasi') : content().scenes[id]?.title; }
 function openScene(id, context = presentationDemo) {

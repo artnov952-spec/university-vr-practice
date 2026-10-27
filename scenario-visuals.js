@@ -1,4 +1,4 @@
-import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r11initial';
+import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r12panorama';
 
 // Whole, fixed-camera renders. No independently scaled people, props, masks or sprite atlases.
 export const SCENARIO_FRAMES = Object.freeze(Object.fromEntries(scenarioLibrary.map(item => [item.id,

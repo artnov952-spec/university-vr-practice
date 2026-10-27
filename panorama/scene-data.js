@@ -1,6 +1,6 @@
 // One-point CG previews. Portal anchors were checked against the rendered images.
 // Each supplied image covers 180 horizontal / 90 vertical degrees, not a room.
-import { PANORAMA_MEDIA } from './media.js?v=proposal20261027-r11initial';
+import { PANORAMA_MEDIA } from './media.js?v=proposal20261027-r12panorama';
 export const SCENE_ORDER = Object.freeze(['courtyard', 'entrance', 'traffic', 'market', 'classroom']);
 const shared = { angle: 180, verticalAngle: 90, wrap: false, initialYaw: 0, initialPitch: 0, zoomMin: .9, zoomMax: 1.8 };
 export const SCENES = {
@@ -26,28 +26,9 @@ export const getScene = id => { if (!Object.hasOwn(SCENES, id)) throw new RangeE
 export const baseFov = aspect => aspect < 1.1 ? 65 : 60;
 export const zoomFov = (base, zoom) => 2 * Math.atan(Math.tan(base * RAD / 2) / zoom) / RAD;
 
-export function resolveViewMode(value, engine = 'panorama', fallback = 'panorama') {
-  if (engine === 'flat') return 'original';
-  return ['original', 'panorama'].includes(value) ? value : fallback === 'original' ? 'original' : 'panorama';
-}
-
-// Enter fullscreen honestly; do not override an explicit choice while it stays open.
-export const fullscreenViewMode = (mode, wasFullscreen, fullscreen) => fullscreen && !wasFullscreen ? 'original' : resolveViewMode(mode);
-
-export function fitOriginalImage(width, height, viewportWidth, viewportHeight, pixelRatio = 1) {
-  inspectDimensions(width, height);
-  if (![viewportWidth, viewportHeight].every(n => Number.isFinite(n) && n > 0)) throw new RangeError('Invalid viewport dimensions');
-  const ratio = Number.isFinite(pixelRatio) && pixelRatio > 0 ? pixelRatio : 1;
-  // One source pixel occupies at most one device pixel, including on Retina displays.
-  const scale = Math.min(viewportWidth / width, viewportHeight / height, 1 / ratio);
-  return { width: width * scale, height: height * scale, scale, pixelScale: scale * ratio,
-    left: (viewportWidth - width * scale) / 2, top: (viewportHeight - height * scale) / 2 };
-}
-
-export function projectOriginalHotspot(anchor, scene, fit) {
-  const uv = textureUV(scene, anchor.yaw, anchor.pitch);
-  return { x: fit.left + uv.u * fit.width, y: fit.top + uv.v * fit.height, visible: uv.inside };
-}
+// Legacy mode arguments cannot re-enable the removed flat presentation.
+export const resolveViewMode = () => 'panorama';
+export const fullscreenViewMode = () => resolveViewMode();
 
 export function viewLimits(scene, fov, aspect, pitch = 0) {
   const halfV = fov * RAD / 2;
