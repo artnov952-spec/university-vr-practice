@@ -1,10 +1,11 @@
-import { scenarios as sourceScenarios, modules as sourceModules } from './content.js?v=proposal20261027-r6final';
-import { getLanguage, setLanguage, subscribeLanguage } from './locale.js?v=proposal20261027-r6final';
-import { translate, localizedField, seedTranslations } from './workspace-i18n.js?v=proposal20261027-r6final';
-import { createExchange, exchangeRows, validateExchange, exchangeCSV, EXCHANGE_FIELDS, EXCHANGE_TABS } from './workspace-exchange.js?v=proposal20261027-r6final';
-import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r6final';
-export { translate, localizedField } from './workspace-i18n.js?v=proposal20261027-r6final';
-export { exchangeRows, validateExchange, exchangeCSV } from './workspace-exchange.js?v=proposal20261027-r6final';
+import { scenarios as sourceScenarios, modules as sourceModules } from './content.js?v=proposal20261027-r8scenes';
+import { getLanguage, setLanguage, subscribeLanguage } from './locale.js?v=proposal20261027-r8scenes';
+import { translate, localizedField, seedTranslations } from './workspace-i18n.js?v=proposal20261027-r8scenes';
+import { createExchange, exchangeRows, validateExchange, exchangeCSV, EXCHANGE_FIELDS, EXCHANGE_TABS } from './workspace-exchange.js?v=proposal20261027-r8scenes';
+import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r8scenes';
+import { renderScenarioVisual, visualForAttempt } from './scenario-visuals.js?v=proposal20261027-r8scenes';
+export { translate, localizedField } from './workspace-i18n.js?v=proposal20261027-r8scenes';
+export { exchangeRows, validateExchange, exchangeCSV } from './workspace-exchange.js?v=proposal20261027-r8scenes';
 
 // Local demo only. PDF pages 7-23 define the scope, not an approved scoring method.
 // Integration: mountWorkspace(root, { onOpenScene, onStateChange }); no parent changes.
@@ -672,7 +673,7 @@ export function mountWorkspace(root, options = {}) {
   frame.setAttribute('data-vr-workspace', '');
   const stylesheet = doc.createElement('link');
   stylesheet.rel = 'stylesheet';
-  stylesheet.href = new URL('./workspace.css?v=proposal20261027-r6final', import.meta.url).href;
+  stylesheet.href = new URL('./workspace.css?v=proposal20261027-r8scenes', import.meta.url).href;
   if (!doc.head?.querySelector?.('link[href*="workspace.css"]')) root.append(stylesheet);
   root.append(frame);
 
@@ -859,6 +860,11 @@ export function mountWorkspace(root, options = {}) {
       panel('Предпросмотр занятия', row(dataText(scenario), badge('v' + scenario.version)), pointsPreview(scenario), row(go('Методика', 5), go('Материалы', 13))));
   }
 
+  function attemptVisual(attempt) {
+    const node = element('div', {class:'ws-scenario-visual'});
+    node.innerHTML = renderScenarioVisual(visualForAttempt(attempt), state.language);
+    return node;
+  }
   function modulePractice() {
     const attempt = visibleActive();
     if (!attempt) return element('div', {}, panel('Нет активной сессии', p('Сначала назначьте участника и пройдите проверки готовности. Завершенные попытки доступны в разборе.'), row(go('Настроить занятие', 6), go('К разбору', 10))), panel('План упражнения', dataText(getScenario(state)), pointsPreview(getScenario(state))));
@@ -866,6 +872,7 @@ export function mountWorkspace(root, options = {}) {
     return element('div', {}, panel(dataText(attempt.scenario), row(badge(STATUSES[attempt.status]), rawText(cadetName(attempt.cadetId)), badge('v' + attempt.scenario.version)), attemptStats(attempt),
       attempt.scenario.brief&&p(dataText(attempt.scenario,'brief')),attempt.scenario.role&&p(dataText(attempt.scenario,'role')),
       p('Выполняйте точки по порядку. Каждое действие и пропуск попадают в журнал; повторная запись точки заблокирована.'),
+      attemptVisual(attempt),
       p('Отметка фиксирует ручной учебный ответ, а не автоматически распознанное действие. Условия сценария дополняют общую CG-панораму.'),
       button('Открыть сцену', 'open-scene', { disabled: !enabled }), !options.onOpenScene && p('Откроется локальная вводная. Регистрация событий доступна ниже.')),
       panel('Действия в упражнении', element('ol', { class: 'ws-exercise' }, attempt.scenario.points.map((point, index) => {
@@ -880,7 +887,7 @@ export function mountWorkspace(root, options = {}) {
       const recent = visibleAttempts(state).at(-1);
       return element('div', {}, panel('Нет активной сессии', p('Запуск открывается после локальной проверки готовности.'), row(go('Настроить занятие', 6), go('К разбору', 10))), panel('Последние наблюдения', recentRows(visibleAttempts(state))), recent && panel('Журнал завершенной попытки', dataText(recent.scenario), timeline(recent)));
     }
-    return element('div', {}, panel('Текущая сессия', row(badge(STATUSES[attempt.status]), rawText(cadetName(attempt.cadetId))), element('h4', {}, dataText(attempt.scenario)), attemptStats(attempt),
+    return element('div', {}, panel('Текущая сессия', row(badge(STATUSES[attempt.status]), rawText(cadetName(attempt.cadetId))), element('h4', {}, dataText(attempt.scenario)), attemptStats(attempt), attemptVisual(attempt),
       row(button(attempt.status === 'paused' ? 'Продолжить' : 'Пауза', attempt.status === 'paused' ? 'resume' : 'pause', { disabled: lock('conduct') }), button('Завершить занятие', 'end', { disabled: lock('conduct') }), go('Практика', 7), go('Открыть экран группы', 9))),
       panel('Журнал текущей попытки', timeline(attempt)), observationPanel(attempt), panel('Комментарий преподавателя', commentForm(attempt), attempt.comments.map(comment => p(commentText(comment), 'ws-document'))),element('details',{class:'ws-panel'},element('summary',{},'Прервать учебную попытку'),p('Завершает только локальную попытку с причиной. Не является аппаратной остановкой шлема.'),form('abort',field('Причина прерывания',area('termination','reason',state.drafts.termination.reason,{required:true,disabled:lock('conduct'),maxlength:180})),submit('Прервать попытку',lock('conduct')))));
   }
@@ -891,7 +898,7 @@ export function mountWorkspace(root, options = {}) {
     const attempt = available.find(item => item.id === state.displayAttemptId) || available[0];
     return element('div', {}, attemptSelector('display'), panel('Экран группы', p('Общий показ контрольных точек и событий. Это журнал, а не видеотрансляция шлема.'),
       element('div', { class: 'ws-display' }, element('span', { class: 'ws-kicker' }, rawText(groupName(attempt.groupId)), state.preferences.displayNames && rawText(' / ' + cadetName(attempt.cadetId))),
-        element('h3', {}, dataText(attempt.scenario)), badge(STATUSES[attempt.status]), attemptStats(attempt),
+        element('h3', {}, dataText(attempt.scenario)), badge(STATUSES[attempt.status]), attemptStats(attempt), attemptVisual(attempt),
         element('ol', { class: 'ws-passport-points' }, attempt.scenario.points.map(point => {
           const event = attempt.events.find(item => item.pointId === point.id);
           return element('li', {}, dataText(point), ' / ', badge(event ? event.kind === 'record' ? 'Зафиксировано' : 'Пропущено' : 'Ожидает действия'));
@@ -1177,7 +1184,7 @@ export function mountWorkspace(root, options = {}) {
         workspaceReducer(state, { type: 'OPEN_SCENE', now: Date.now() });
         sceneOpening = true;
         target.disabled = true;
-        if (typeof options.onOpenScene === 'function') await options.onOpenScene(attempt.scenario.sceneId);
+        if (typeof options.onOpenScene === 'function') await options.onOpenScene(attempt.scenario.sceneId, visualForAttempt(attempt));
         else showDialog(dataText(attempt.scenario), element('div', {}, p(SCENES[attempt.scenario.sceneId]), p('Откроется локальная вводная. Регистрация событий доступна ниже.'), pointsPreview(attempt.scenario)));
         if (!destroyed && state.activeAttemptId === attempt.id) dispatch({ type: 'OPEN_SCENE' }, !localDialog);
       } catch { notice = 'Внешнюю сцену открыть не удалось. Используйте встроенную регистрацию событий; повторный запуск не выполнен.'; noticeError = true; updateNotices(); }

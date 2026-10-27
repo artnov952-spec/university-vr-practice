@@ -1,10 +1,10 @@
-import { mountWorkspace, calculateResult } from './workspace.js?v=proposal20261027-r6final';
-import { modules, scenarios } from './content.js?v=proposal20261027-r6final';
-import { getLanguage, setLanguage, subscribeLanguage } from './locale.js?v=proposal20261027-r6final';
-import { proposalContent } from './proposal-content.js?v=proposal20261027-r6final';
-import { renderProposal, escapeHtml as escape, icon } from './proposal-template.js?v=proposal20261027-r6final';
-import { createPresentationDemo, reducePresentationDemo, renderPresentationDemo } from './presentation-demo.js?v=proposal20261027-r6final';
-import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r6final';
+import { mountWorkspace, calculateResult } from './workspace.js?v=proposal20261027-r8scenes';
+import { modules, scenarios } from './content.js?v=proposal20261027-r8scenes';
+import { getLanguage, setLanguage, subscribeLanguage } from './locale.js?v=proposal20261027-r8scenes';
+import { proposalContent } from './proposal-content.js?v=proposal20261027-r8scenes';
+import { renderProposal, escapeHtml as escape, icon } from './proposal-template.js?v=proposal20261027-r8scenes';
+import { createPresentationDemo, reducePresentationDemo, renderPresentationDemo } from './presentation-demo.js?v=proposal20261027-r8scenes';
+import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r8scenes';
 
 const $ = id => document.getElementById(id);
 const t = (ru, uz) => getLanguage() === 'uz' ? uz : ru;
@@ -54,15 +54,16 @@ function openModule(id) {
   showDialog('system-dialog');
   $('system-dialog').scrollTop = 0;
 }
-function panoramaURL(id, embed = false) {
-  return './panorama/viewer.html?v=proposal20261027-r6final&scene='+encodeURIComponent(id)+'&theme='+document.documentElement.dataset.theme+'&lang='+getLanguage()+(embed?'&embed=1':'');
+function panoramaURL(id, embed = false, context = presentationDemo) {
+  const visual = context?.caseId?.startsWith(id+'-') ? '&case='+encodeURIComponent(context.caseId)+'&points='+encodeURIComponent(context.points.join(',')) : '';
+  return './panorama/viewer.html?v=proposal20261027-r8scenes&scene='+encodeURIComponent(id)+'&theme=light&lang='+getLanguage()+(embed?'&embed=1':'')+visual;
 }
 function sceneTitle(id) { return id === 'classroom' ? t('Учебная аудитория','O‘quv auditoriyasi') : content().scenes[id]?.title; }
-function openScene(id) {
+function openScene(id, context = presentationDemo) {
   const valid = id === 'classroom' || Object.hasOwn(content().scenes, id) ? id : 'courtyard';
   $('scene-dialog-title').textContent = sceneTitle(valid);
   const frame = document.createElement('iframe');
-  frame.src = panoramaURL(valid);
+  frame.src = panoramaURL(valid, false, context);
   frame.title = sceneTitle(valid) + ' / ' + t('панорамный осмотр','panoramali ko‘rinish');
   frame.allow = 'fullscreen';
   $('scene-frame-slot').replaceChildren(frame);
@@ -172,7 +173,9 @@ function handlePresentationAction(target, value) {
   if (Object.hasOwn(destinations,type)) {
     if(type==='goto-practice') {
       presentationDemo=reducePresentationDemo(presentationDemo,{type:'start'});
+      syncScenarioPreview();
       if(presentationDemo.phase!=='running') {selectStage(1);return;}
+      selectArchitecture(view.architecture); selectPreview(view.preview);
     }
     if (scope==='architecture' && type==='goto-practice') selectArchitecture('vr');
     else { selectStage(destinations[type]); $('process-content').scrollIntoView({block:'start',behavior:'auto'}); }
@@ -180,6 +183,7 @@ function handlePresentationAction(target, value) {
   }
   const action = {type,value:value ?? target.dataset.demoValue,index:Number(target.dataset.demoIndex)};
   presentationDemo = reducePresentationDemo(presentationDemo,action);
+  syncScenarioPreview();
   if (type==='case' || type==='scenario') selectScene(presentationDemo.scenario);
   const focusSelector = `[data-demo-action="${CSS.escape(type)}"][data-demo-scope="${CSS.escape(scope)}"]${target.dataset.demoIndex!==undefined?`[data-demo-index="${CSS.escape(target.dataset.demoIndex)}"]`:''}${target.dataset.demoValue!==undefined?`[data-demo-value="${CSS.escape(target.dataset.demoValue)}"]`:''}`;
   // Both inline illustrations share their example, not the persisted workspace.
@@ -187,6 +191,10 @@ function handlePresentationAction(target, value) {
   const nextFocus = document.querySelector(focusSelector);
   if (nextFocus && !nextFocus.disabled) nextFocus.focus({preventScroll:true});
   else document.querySelector(`.demo-screen[data-demo-scope="${CSS.escape(scope)}"] button:not(:disabled)`)?.focus({preventScroll:true});
+}
+function syncScenarioPreview() {
+  if (presentationDemo.scenario !== view.scene) return;
+  $('scene-preview')?.contentWindow?.postMessage({type:'university-panorama:scenario',caseId:presentationDemo.caseId,points:presentationDemo.points},location.origin);
 }
 function selectPreview(id) {
   if (!['prepare','practice','result'].includes(id)) return;

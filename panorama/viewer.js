@@ -1,15 +1,20 @@
-import { SCENES, SCENE_ORDER, getScene, constrainView, directionAt, projectHotspot, inspectDimensions, clamp, resolveViewMode, fullscreenViewMode, fitOriginalImage, projectOriginalHotspot } from './scene-data.js?v=proposal20261027-r6final';
-import { LANGUAGES, normalizeLanguage, translate, localizeScene, applyViewerLanguage } from './locale.js?v=proposal20261027-r6final';
+import { SCENES, SCENE_ORDER, getScene, constrainView, directionAt, projectHotspot, inspectDimensions, clamp, resolveViewMode, fullscreenViewMode, fitOriginalImage, projectOriginalHotspot } from './scene-data.js?v=proposal20261027-r8scenes';
+import { LANGUAGES, normalizeLanguage, translate, localizeScene, applyViewerLanguage } from './locale.js?v=proposal20261027-r8scenes';
+import { normalizeVisualContext, scenarioVisualState, compositeScenario } from '../scenario-visuals.js?v=proposal20261027-r8scenes';
 
-export const normalizeTheme = (value, fallback = 'light') => value === 'light' || value === 'dark' ? value : fallback;
+export const normalizeTheme = () => 'light';
 
 export function readParentCommand(event, parentWindow, origin) {
   if (!event || !parentWindow || typeof origin !== 'string' || !origin || origin === 'null' || event.origin !== origin || event.source !== parentWindow) return null;
   const data = event.data;
   if (!data || typeof data !== 'object' || Array.isArray(data) || !Object.hasOwn(data, 'type')) return null;
-  if (data.type === 'university-panorama:theme' && Object.hasOwn(data, 'theme') && ['light', 'dark'].includes(data.theme)) return { type: 'theme', theme: data.theme };
+  if (data.type === 'university-panorama:theme' && Object.hasOwn(data, 'theme') && ['light', 'dark'].includes(data.theme)) return { type: 'theme', theme: normalizeTheme(data.theme) };
   if (data.type === 'university-panorama:set-scene' && Object.hasOwn(data, 'sceneId') && SCENE_ORDER.includes(data.sceneId)) return { type: 'scene', sceneId: data.sceneId };
   if (data.type === 'university-panorama:language' && Object.hasOwn(data, 'language') && LANGUAGES.includes(data.language)) return { type: 'language', language: data.language };
+  if (data.type === 'university-panorama:scenario') {
+    const context=normalizeVisualContext(data);
+    return context ? {type:'scenario',context} : null;
+  }
   for (const type of ['suspend', 'resume', 'dispose']) if (data.type === `university-panorama:${type}`) return { type };
   return null;
 }
@@ -51,7 +56,8 @@ export async function mountPanorama(canvas, options = {}) {
   const layer = options.hotspotLayer || Object.assign(document.createElement('div'), { className: 'hotspots' });
   if (!options.flatImage) host.append(flat);
   if (!options.hotspotLayer) host.append(layer);
-  let THREE, renderer, scene, camera, mesh, geometry, material, texture, image;
+  let THREE, renderer, scene, camera, mesh, geometry, material, texture, image, renderedSource;
+  let scenarioContext = normalizeVisualContext(options.scenarioContext);
   let disposed = false, requestId = 0, imageRequest, animation, autoFrame = 0, lastStamp = null, autoDirection = 1;
   let width = 1, height = 1, requestedScene = SCENE_ORDER.includes(options.sceneId) ? options.sceneId : 'courtyard';
   const suspensionReasons = new Set(document.hidden ? ['document'] : []);
@@ -62,7 +68,7 @@ export async function mountPanorama(canvas, options = {}) {
   let config = getScene(requestedScene), hotspotButtons = [], hotspotEvents = new AbortController();
   const notify = () => { if (!disposed) options.onChange?.(getState()); };
   const originalFit = () => state.nativeWidth ? fitOriginalImage(state.nativeWidth, state.nativeHeight, width, height, globalThis.devicePixelRatio) : null;
-  const getState = () => ({ ...state, language,
+  const getState = () => ({ ...state, language, scenario: scenarioVisualState(scenarioContext)?.sceneId === state.sceneId ? {caseId:scenarioContext.caseId,step:scenarioVisualState(scenarioContext).step} : null,
     warning: warningKeys.filter(key => key !== 'textureWarning' || state.mode === 'panorama').map(key => text(key)).join(' '),
     message: messageHotspotId ? localizeScene(config, language).hotspots.find(anchor => anchor.id === messageHotspotId)?.description || '' : messageKey ? text(messageKey, messageValues) : '',
     angle: config.angle, verticalAngle: config.verticalAngle, wrap: config.wrap,
@@ -197,8 +203,9 @@ export async function mountPanorama(canvas, options = {}) {
     await own.finished.catch(() => {});
     if (animation === own) { if (token === requestId) surface.style.opacity = String(to); own.cancel(); animation = null; }
   }
-  async function setScene(id) {
+  async function setScene(id, preserveView = false) {
     if (disposed) return false;
+    const previousView = {yaw:state.yaw,pitch:state.pitch,zoom:state.zoom};
     const next = getScene(id), token = ++requestId; requestedScene = id;
     imageRequest?.abort(); imageRequest = new AbortController();
     animation?.cancel(); animation = null; canvas.style.opacity = flat.style.opacity = '1';
@@ -209,17 +216,20 @@ export async function mountPanorama(canvas, options = {}) {
       if (url.origin !== location.origin) throw new Error('Only same-origin image assets are allowed');
       const loaded = await loadImage(url.href, imageRequest.signal);
       const dimensions = inspectDimensions(loaded.naturalWidth, loaded.naturalHeight);
+      const visual = scenarioVisualState(scenarioContext);
+      const rendered = visual?.sceneId === id ? await compositeScenario(loaded, scenarioContext) : loaded;
       if (disposed || token !== requestId) return false;
       const surface = state.mode === 'original' ? flat : canvas;
       if (image) await fade(surface, 1, 0, 100, token);
       if (disposed || token !== requestId) return false;
       config = next; image = loaded;
-      flat.src = loaded.src; flat.alt = text('flatAlt', { label: localizeScene(next, language).label });
+      renderedSource = rendered === loaded ? loaded.src : rendered.toDataURL('image/png');
+      flat.src = renderedSource; flat.alt = text('flatAlt', { label: localizeScene(next, language).label });
       if (state.engine === 'panorama') {
         const nextGeometry = new THREE.SphereGeometry(50, 128, 64, 0, next.angle * Math.PI / 180,
           (90 - next.verticalAngle / 2) * Math.PI / 180, next.verticalAngle * Math.PI / 180);
         nextGeometry.scale(-1, 1, 1); nextGeometry.rotateY((next.angle * Math.PI / 180 + Math.PI) / 2);
-        const nextTexture = new THREE.Texture(loaded); nextTexture.colorSpace = THREE.SRGBColorSpace; nextTexture.needsUpdate = true;
+        const nextTexture = new THREE.Texture(rendered); nextTexture.colorSpace = THREE.SRGBColorSpace; nextTexture.needsUpdate = true;
         nextTexture.anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy());
         const nextMaterial = new THREE.MeshBasicMaterial({ map: nextTexture });
         if (mesh) scene.remove(mesh);
@@ -231,7 +241,7 @@ export async function mountPanorama(canvas, options = {}) {
       if (state.engine === 'flat') warningKeys.unshift('webglUnavailable');
       messageKey = ''; messageHotspotId = null;
       Object.assign(state, { sceneId: id, pendingId: null, status: 'ready', nativeWidth: dimensions.width, nativeHeight: dimensions.height,
-        aspectValid: dimensions.aspectValid, yaw: next.initialYaw, pitch: next.initialPitch, zoom: 1 });
+        aspectValid: dimensions.aspectValid, ...(preserveView ? previousView : {yaw:next.initialYaw,pitch:next.initialPitch,zoom:1}) });
       makeHotspots(); draw(); notify(); await fade(state.mode === 'original' ? flat : canvas, 0, 1, 180, token); return !disposed && token === requestId;
     } catch (error) {
       if (disposed || token !== requestId || error.name === 'AbortError') return false;
@@ -239,6 +249,13 @@ export async function mountPanorama(canvas, options = {}) {
       messageKey = 'loadError'; messageValues = { asset: next.asset.split('/').pop() }; messageHotspotId = null;
       draw(); notify(); return false;
     }
+  }
+  async function setScenario(value) {
+    const context=normalizeVisualContext(value), visual=scenarioVisualState(context);
+    if (!context || visual.sceneId !== requestedScene || disposed) return false;
+    if (JSON.stringify(context) === JSON.stringify(scenarioContext)) return true;
+    scenarioContext=context;
+    return setScene(requestedScene,true);
   }
   const pointers = new Map(); let previous, pinch;
   canvas.addEventListener('pointerdown', e => {
@@ -272,7 +289,7 @@ export async function mountPanorama(canvas, options = {}) {
   canvas.addEventListener('webglcontextlost', e => {
     e.preventDefault(); clearPointers(); state.engine = 'flat'; state.mode = 'original'; setAutoRotate(false);
     animation?.cancel(); animation = null; canvas.style.opacity = flat.style.opacity = '1';
-    if (image) { flat.src = image.src; flat.alt = text('flatAlt', { label: localizeScene(config, language).label }); }
+    if (image) { flat.src = renderedSource; flat.alt = text('flatAlt', { label: localizeScene(config, language).label }); }
     warningKeys = ['webglLost']; draw(); notify();
   }, { signal: listener.signal });
   const media = matchMedia('(prefers-reduced-motion: reduce)');
@@ -291,7 +308,7 @@ export async function mountPanorama(canvas, options = {}) {
     texture?.dispose(); material?.dispose(); geometry?.dispose(); renderer?.dispose(); scene?.clear();
     flat.removeAttribute('src'); if (!options.flatImage) flat.remove(); if (!options.hotspotLayer) layer.remove(); image = null;
   }
-  const api = { setScene, setView, setMode, zoom, reset, setAutoRotate, setLanguage, resize, dispose, getState,
+  const api = { setScene, setScenario, setView, setMode, zoom, reset, setAutoRotate, setLanguage, resize, dispose, getState,
     suspend: () => setSuspended('parent', true), resume: () => setSuspended('parent', false), retry: () => setScene(requestedScene) };
   options.onMount?.(api);
   resize(); await setScene(requestedScene);
@@ -301,14 +318,17 @@ export async function mountPanorama(canvas, options = {}) {
 export async function bootViewer() {
   const $ = id => document.getElementById(id), query = new URLSearchParams(location.search);
   const selected = SCENE_ORDER.includes(query.get('scene')) ? query.get('scene') : 'courtyard';
+  const initialVisual = normalizeVisualContext({caseId:query.get('case'),points:query.get('points') ? query.get('points').split(',').map(Number) : []});
+  let queuedVisual = initialVisual;
   const embed = query.get('embed') === '1', events = new AbortController();
   let language = normalizeLanguage(query.get('lang')), moduleStatusKey = '', fullscreenDenied = false, disposed = false, viewerReady = false, wasFullscreen = false;
   let api, mountLanguage, disposeWorld, parentSuspended = false, lastAnnouncement = '', sentId, queuedScene, infoReturnFocus, infoScene;
   const text = (key, values) => translate(language, key, values);
   const panel = $('teaching-info');
   function setTheme(value) {
-    const theme = normalizeTheme(value, document.documentElement.dataset.theme || 'light');
-    document.documentElement.dataset.theme = theme; return theme;
+    const theme = normalizeTheme(value);
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = 'light'; return theme;
   }
   setTheme(query.get('theme'));
   applyViewerLanguage(document, language);
@@ -344,6 +364,7 @@ export async function bootViewer() {
     if (!command) return;
     if (command.type === 'theme') setTheme(command.theme);
     if (command.type === 'language') setLanguage(command.language);
+    if (command.type === 'scenario') { queuedVisual=command.context; if(api) api.setScenario(command.context); }
     if (command.type === 'suspend') { parentSuspended = true; api?.suspend(); }
     if (command.type === 'resume') { parentSuspended = false; api?.resume(); }
     if (command.type === 'dispose') disposeViewer();
@@ -388,6 +409,11 @@ export async function bootViewer() {
     return language;
   }
   function update(state) {
+    const visual=state.status==='ready' && state.scenario ? scenarioVisualState({caseId:state.scenario.caseId,points:Array.from({length:state.scenario.step},(_,i)=>i)}) : null;
+    $('scenario-note').hidden=!visual;
+    if(visual) $('scenario-note').textContent=(language==='uz'?visual.item.uzTitle:visual.item.title)+' · '+visual.step+'/5'+(visual.step?' · '+visual.item.points[visual.step-1][language==='uz'?'uzTitle':'title']:'');
+    $('viewport').dataset.scenarioCase=visual?.caseId || '';
+    $('viewport').dataset.scenarioStep=visual?String(visual.step):'';
     fullscreenDenied = false;
     if (panel.open && (state.pendingId || state.sceneId !== infoScene)) closeInfo();
     $('current-label').textContent = state.label;
@@ -417,7 +443,7 @@ export async function bootViewer() {
       postToParent({ type: 'university-panorama:scene', sceneId: state.sceneId, engine: state.engine, nativeWidth: state.nativeWidth, nativeHeight: state.nativeHeight });
     }
   }
-  api = await mountPanorama($('panorama-canvas'), { sceneId: selected, language, mode: query.get('mode') === 'panorama' ? 'panorama' : 'original', flatImage: $('flat-preview'), hotspotLayer: $('hotspots'),
+  api = await mountPanorama($('panorama-canvas'), { sceneId: selected, language, scenarioContext:initialVisual, mode: query.get('mode') === 'panorama' ? 'panorama' : 'original', flatImage: $('flat-preview'), hotspotLayer: $('hotspots'),
     onMount: mounted => {
       api = mounted; mountLanguage = api.setLanguage; disposeWorld = api.dispose;
       api.dispose = disposeViewer; window.__panorama = api;
@@ -446,6 +472,7 @@ export async function bootViewer() {
   }, { signal: events.signal });
   wasFullscreen = updateFullscreen();
   if (queuedScene && queuedScene !== api.getState().sceneId) api.setScene(queuedScene);
+  if (queuedVisual && JSON.stringify(queuedVisual)!==JSON.stringify(initialVisual)) api.setScenario(queuedVisual);
   return api;
 }
 if (typeof window !== 'undefined' && document.getElementById('panorama-app')) {

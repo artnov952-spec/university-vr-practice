@@ -1,5 +1,5 @@
-import { proposalContent } from './proposal-content.js?v=proposal20261027-r6final';
-import { PANORAMA_MEDIA } from './panorama/media.js?v=proposal20261027-r6final';
+import { proposalContent } from './proposal-content.js?v=proposal20261027-r8scenes';
+import { PANORAMA_MEDIA } from './panorama/media.js?v=proposal20261027-r8scenes';
 export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const icon = name => `<svg class="i" aria-hidden="true"><use href="./assets/ui-icons/sprite.svg#i-${name}"></use></svg>`;
 
@@ -13,7 +13,7 @@ export function renderProposal(language) {
   <header class="header wrap">
     <div class="header-top">
       <a class="identity" href="#purpose"><img src="./assets/university-logo.png" width="56" height="56" alt="${t('Эмблема с официального сайта университета','Universitet rasmiy saytidagi gerb')}"><span>${t('Университет общественной безопасности','Jamoat xavfsizligi universiteti')}<small>${t('Республика Узбекистан','O‘zbekiston Respublikasi')}</small></span></a>
-      <div class="header-actions"><div class="language-switch" role="group" aria-label="${t('Язык предложения и программы','Taklif va dastur tili')}">${languageButton('ru')}${languageButton('uz')}</div><button class="btn btn--icon theme-toggle" data-theme-toggle aria-label="${t('Изменить тему','Mavzuni o‘zgartirish')}">${icon('moon')}</button></div>
+      <div class="header-actions"><div class="language-switch" role="group" aria-label="${t('Язык предложения и программы','Taklif va dastur tili')}">${languageButton('ru')}${languageButton('uz')}</div></div>
     </div>
     <nav class="navigation" aria-label="${t('Разделы предложения','Taklif bo‘limlari')}">${data.nav.map(item => `<a href="#${item.id}">${item.title}</a>`).join('')}</nav>
   </header>

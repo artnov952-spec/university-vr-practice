@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title data-i18n="title">Панорамная CG-концепция | Учебные пространства</title>
-  <script>const q=new URLSearchParams(location.search);if(q.get('embed')==='1')document.documentElement.classList.add('is-embed');document.documentElement.dataset.theme=q.get('theme')==='dark'?'dark':'light';document.documentElement.lang=q.get('lang')==='uz'?'uz':'ru';if(document.documentElement.lang==='uz'){document.documentElement.classList.add('is-localizing');document.title="Panoramali CG-konsepsiya | O'quv makonlari";}</script>
-  <link rel="stylesheet" href="./panorama.css?v=proposal20261027-r6final">
+  <script>const q=new URLSearchParams(location.search);if(q.get('embed')==='1')document.documentElement.classList.add('is-embed');document.documentElement.dataset.theme='light';document.documentElement.style.colorScheme='light';document.documentElement.lang=q.get('lang')==='uz'?'uz':'ru';if(document.documentElement.lang==='uz'){document.documentElement.classList.add('is-localizing');document.title="Panoramali CG-konsepsiya | O'quv makonlari";}</script>
+  <link rel="stylesheet" href="./panorama.css?v=proposal20261027-r8scenes">
   <script type="importmap">{"imports":{"three":"../scene3d/vendor/three.module.js"}}</script>
-  <script type="module" src="./viewer.js?v=proposal20261027-r6final"></script>
+  <script type="module" src="./viewer.js?v=proposal20261027-r8scenes"></script>
 </head>
 <body>
   <main class="panorama-app" id="panorama-app">
@@ -42,6 +42,7 @@
     <footer class="viewer-footer">
       <p data-i18n="footer">Панорамная CG-концепция · обзор из одной точки</p>
       <p id="asset-note" data-i18n="preliminary" role="status">Привязка точек перехода предварительная.</p>
+      <p id="scenario-note" role="status" hidden></p>
     </footer>
     <p id="announcement" class="sr-only" role="status" aria-live="polite"></p>
     <dialog id="teaching-info" class="info-panel" aria-labelledby="info-title" aria-describedby="info-summary">

@@ -7,6 +7,7 @@ import { SCENE_ORDER, SCENES, constrainView } from '../panorama/scene-data.js';
 import { scenarioLibrary } from '../scenario-library.js';
 import { renderProposal } from '../proposal-template.js';
 import { createPresentationDemo, renderPresentationDemo } from '../presentation-demo.js';
+import './check-scenario-visuals.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const files = [];
