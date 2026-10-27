@@ -1,5 +1,5 @@
-import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r8scenes';
-import { PANORAMA_MEDIA } from './panorama/media.js?v=proposal20261027-r8scenes';
+import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r8final';
+import { PANORAMA_MEDIA } from './panorama/media.js?v=proposal20261027-r8final';
 
 // Coordinates are in the original 2:1 image, shared by the inline and spherical views.
 const atlas = (name) => ({ src: `./assets/scenario/${name}-r8.png`, width: 1774, height: 887 });

@@ -1,6 +1,6 @@
-import { SCENES, SCENE_ORDER, getScene, constrainView, directionAt, projectHotspot, inspectDimensions, clamp, resolveViewMode, fullscreenViewMode, fitOriginalImage, projectOriginalHotspot } from './scene-data.js?v=proposal20261027-r8scenes';
-import { LANGUAGES, normalizeLanguage, translate, localizeScene, applyViewerLanguage } from './locale.js?v=proposal20261027-r8scenes';
-import { normalizeVisualContext, scenarioVisualState, compositeScenario } from '../scenario-visuals.js?v=proposal20261027-r8scenes';
+import { SCENES, SCENE_ORDER, getScene, constrainView, directionAt, projectHotspot, inspectDimensions, clamp, resolveViewMode, fullscreenViewMode, fitOriginalImage, projectOriginalHotspot } from './scene-data.js?v=proposal20261027-r8final';
+import { LANGUAGES, normalizeLanguage, translate, localizeScene, applyViewerLanguage } from './locale.js?v=proposal20261027-r8final';
+import { normalizeVisualContext, scenarioVisualState, compositeScenario } from '../scenario-visuals.js?v=proposal20261027-r8final';
 
 export const normalizeTheme = () => 'light';
 
@@ -206,6 +206,7 @@ export async function mountPanorama(canvas, options = {}) {
   async function setScene(id, preserveView = false) {
     if (disposed) return false;
     const previousView = {yaw:state.yaw,pitch:state.pitch,zoom:state.zoom};
+    if (id !== requestedScene) scenarioContext = null;
     const next = getScene(id), token = ++requestId; requestedScene = id;
     imageRequest?.abort(); imageRequest = new AbortController();
     animation?.cancel(); animation = null; canvas.style.opacity = flat.style.opacity = '1';

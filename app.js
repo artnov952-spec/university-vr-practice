@@ -1,10 +1,10 @@
-import { mountWorkspace, calculateResult } from './workspace.js?v=proposal20261027-r8scenes';
-import { modules, scenarios } from './content.js?v=proposal20261027-r8scenes';
-import { getLanguage, setLanguage, subscribeLanguage } from './locale.js?v=proposal20261027-r8scenes';
-import { proposalContent } from './proposal-content.js?v=proposal20261027-r8scenes';
-import { renderProposal, escapeHtml as escape, icon } from './proposal-template.js?v=proposal20261027-r8scenes';
-import { createPresentationDemo, reducePresentationDemo, renderPresentationDemo } from './presentation-demo.js?v=proposal20261027-r8scenes';
-import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r8scenes';
+import { mountWorkspace, calculateResult } from './workspace.js?v=proposal20261027-r8final';
+import { modules, scenarios } from './content.js?v=proposal20261027-r8final';
+import { getLanguage, setLanguage, subscribeLanguage } from './locale.js?v=proposal20261027-r8final';
+import { proposalContent } from './proposal-content.js?v=proposal20261027-r8final';
+import { renderProposal, escapeHtml as escape, icon } from './proposal-template.js?v=proposal20261027-r8final';
+import { createPresentationDemo, reducePresentationDemo, renderPresentationDemo } from './presentation-demo.js?v=proposal20261027-r8final';
+import { scenarioLibrary } from './scenario-library.js?v=proposal20261027-r8final';
 
 const $ = id => document.getElementById(id);
 const t = (ru, uz) => getLanguage() === 'uz' ? uz : ru;
@@ -56,7 +56,7 @@ function openModule(id) {
 }
 function panoramaURL(id, embed = false, context = presentationDemo) {
   const visual = context?.caseId?.startsWith(id+'-') ? '&case='+encodeURIComponent(context.caseId)+'&points='+encodeURIComponent(context.points.join(',')) : '';
-  return './panorama/viewer.html?v=proposal20261027-r8scenes&scene='+encodeURIComponent(id)+'&theme=light&lang='+getLanguage()+(embed?'&embed=1':'')+visual;
+  return './panorama/viewer.html?v=proposal20261027-r8final&scene='+encodeURIComponent(id)+'&theme=light&lang='+getLanguage()+(embed?'&embed=1':'')+visual;
 }
 function sceneTitle(id) { return id === 'classroom' ? t('Учебная аудитория','O‘quv auditoriyasi') : content().scenes[id]?.title; }
 function openScene(id, context = presentationDemo) {

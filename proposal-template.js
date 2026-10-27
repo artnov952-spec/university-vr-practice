@@ -1,5 +1,5 @@
-import { proposalContent } from './proposal-content.js?v=proposal20261027-r8scenes';
-import { PANORAMA_MEDIA } from './panorama/media.js?v=proposal20261027-r8scenes';
+import { proposalContent } from './proposal-content.js?v=proposal20261027-r8final';
+import { PANORAMA_MEDIA } from './panorama/media.js?v=proposal20261027-r8final';
 export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const icon = name => `<svg class="i" aria-hidden="true"><use href="./assets/ui-icons/sprite.svg#i-${name}"></use></svg>`;
 
@@ -32,7 +32,7 @@ export function renderProposal(language) {
       <div class="scene-tabs" role="tablist" aria-label="${t('Учебные среды','O‘quv muhitlari')}">${Object.entries(data.scenes).map(([id,item],i)=>`<button id="scene-tab-${id}" role="tab" aria-selected="${i===0}" aria-controls="scene-panel" data-scene-tab="${id}">${icon(['house','building-2','columns-3','users'][i])}${item.title}</button>`).join('')}</div>
       <div class="scene-panel" id="scene-panel" role="tabpanel" aria-labelledby="scene-tab-courtyard"><div class="panorama-stage"><iframe id="scene-preview" title="${t('Панорамный осмотр','Panoramali ko‘rinish')}" allow="fullscreen" loading="lazy"></iframe></div><article class="scene-description" id="scene-description"></article></div>
       <div id="scenario-case-browser" class="case-browser"></div>
-      <p class="note">${t('Пять сценариев на каждую среду, 20 всего. Здесь показаны проекты ситуаций и оцениваемых действий. Детальную методику утверждает университет; сцены не воспроизводят эти события автоматически.','Har bir muhitga beshtadan, jami 20 ssenariy. Bu yerda vaziyatlar va baholanadigan amallar loyihasi ko‘rsatilgan. Batafsil metodikani universitet tasdiqlaydi; sahnalar bu hodisalarni avtomatik ijro etmaydi.')}</p>
+      <p class="note">${t('Пять сценариев на каждую среду, 20 всего. В интерактивных примерах действия меняют участников, предметы и обстановку CG-сцены. Это ручная учебная модель; детальную методику утверждает университет.','Har bir muhitga beshtadan, jami 20 ssenariy. Interaktiv namunalarda harakatlar CG-sahnadagi qatnashchilar, buyumlar va vaziyatni o‘zgartiradi. Bu qo‘lda boshqariladigan o‘quv modeli; batafsil metodikani universitet tasdiqlaydi.')}</p>
       <p class="note">${t('Панорамные CG-концепции: обзор из одной точки, до 180°. Это не свободное перемещение и не готовое приложение для шлема.','Panoramali CG-konsepsiyalar: bir nuqtadan 180° gacha ko‘rinish. Bu erkin yurish yoki shlem uchun tayyor ilova emas.')}</p>
     </section>
     <section class="slide wrap" id="process">
